@@ -294,90 +294,89 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. MID-PAGE: INFRASTRUCTURE MATERIALS & VERIFIABLE CREDENTIALS WITH BACKGROUND PICTURE */}
-      <section className="relative overflow-hidden py-24 sm:py-32 border-y-4 border-[#E3A129]">
-        {/* Exact Construction Materials Background Image with ZERO color covering it */}
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          <img 
-            src="https://i.postimg.cc/d3qvCNTg/10-Building-Material-Picks-for-Strong-and-Modern-Construction.jpg" 
-            alt="10-Building-Material-Picks-for-Strong-and-Modern-Construction"
-            className="w-full h-full object-cover object-center"
-            loading="lazy"
-          />
-        </div>
+      {/* 4. MID-PAGE: INFRASTRUCTURE MATERIALS & VERIFIABLE CREDENTIALS */}
+      <section className="relative bg-[#10243A] text-white overflow-hidden py-20 lg:py-28 border-y-4 border-[#E3A129]">
+        {/* Subtle architectural grid pattern */}
+        <div 
+          className="absolute inset-0 opacity-5 pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)',
+            backgroundSize: '24px 24px'
+          }}
+        />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl space-y-6">
+          <div className="max-w-4xl space-y-6">
             <AnimatedSection direction="left">
-              <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-sm border-2 border-amber-brand text-xs font-extrabold text-amber-brand uppercase tracking-wider mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+              <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-sm bg-[#16314D] border border-amber-brand/50 text-xs font-bold text-amber-brand uppercase tracking-wider mb-2">
                 <ShieldCheck className="w-4 h-4 text-amber-brand" />
-                <span className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">Quality Engineering • Modern Infrastructure</span>
+                <span>Quality Engineering • Modern Infrastructure</span>
               </div>
               
-              <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-[0_3px_8px_rgba(0,0,0,0.95)]">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
                 Built For Strength. <br />
-                <span className="text-[#E3A129] drop-shadow-[0_3px_8px_rgba(0,0,0,0.95)]">Engineered For Longevity.</span>
+                <span className="text-[#E3A129]">Engineered For Longevity.</span>
               </h2>
 
-              <p className="text-base sm:text-lg text-white leading-relaxed font-semibold mt-4 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-2xl">
+              <p className="text-sm sm:text-base text-gray-300 leading-relaxed font-normal mt-4 max-w-3xl">
                 Across power substations, transmission networks, and industrial civil works, Rumuli Corporate deploys certified, high-grade construction materials—including high-tensile structural steel, TBS-approved reinforcement, heavy-duty concrete foundations, and international IEC-grade conductors designed to endure demanding environmental conditions.
               </p>
             </AnimatedSection>
 
-            {/* Verified Metrics with Animated Counters - sitting directly on image with NO background box */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-6 border-t-2 border-white/60">
-              <AnimatedSection delay={100} className="space-y-1 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
-                <span className="text-xs font-black uppercase tracking-wider text-[#E3A129] block drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
+            {/* Verified Metrics with Animated Counters */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-6 border-t border-[#1D4064]">
+              <AnimatedSection delay={100} className="space-y-1 bg-[#16314D]/60 p-4 rounded border border-[#26517D] card-hover-lift">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-brand block">
                   Established
                 </span>
-                <p className="text-3xl sm:text-4xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
+                <p className="text-3xl sm:text-4xl font-extrabold text-white">
                   <AnimatedCounter end={2016} duration={1500} />
                 </p>
-                <p className="text-xs font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">Tanzanian Enterprise</p>
+                <p className="text-xs text-gray-300">Tanzanian Enterprise</p>
               </AnimatedSection>
 
-              <AnimatedSection delay={200} className="space-y-1 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
-                <span className="text-xs font-black uppercase tracking-wider text-[#E3A129] block drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
+              <AnimatedSection delay={200} className="space-y-1 bg-[#16314D]/60 p-4 rounded border border-[#26517D] card-hover-lift">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-brand block">
                   Certificate No.
                 </span>
-                <p className="text-3xl sm:text-4xl font-black text-white font-mono drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
+                <p className="text-3xl sm:text-4xl font-extrabold text-white font-mono">
                   <AnimatedCounter end={123062} duration={1800} />
                 </p>
-                <p className="text-xs font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">BRELA Incorporation</p>
+                <p className="text-xs text-gray-300">BRELA Incorporation</p>
               </AnimatedSection>
 
-              <AnimatedSection delay={300} className="space-y-1 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
-                <span className="text-xs font-black uppercase tracking-wider text-[#E3A129] block drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
+              <AnimatedSection delay={300} className="space-y-1 bg-[#16314D]/60 p-4 rounded border border-[#26517D] card-hover-lift">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-brand block">
                   Core Disciplines
                 </span>
-                <p className="text-3xl sm:text-4xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
+                <p className="text-3xl sm:text-4xl font-extrabold text-white">
                   <AnimatedCounter end={7} duration={1200} suffix=" Sectors" />
                 </p>
-                <p className="text-xs font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">Turnkey Scope</p>
+                <p className="text-xs text-gray-300">Turnkey Scope</p>
               </AnimatedSection>
 
-              <AnimatedSection delay={400} className="space-y-1 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
-                <span className="text-xs font-black uppercase tracking-wider text-[#E3A129] block drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
+              <AnimatedSection delay={400} className="space-y-1 bg-[#16314D]/60 p-4 rounded border border-[#26517D] card-hover-lift">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-brand block">
                   HSE Record
                 </span>
-                <p className="text-3xl sm:text-4xl font-black text-emerald-300 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
+                <p className="text-3xl sm:text-4xl font-extrabold text-emerald-400">
                   Zero Harm
                 </p>
-                <p className="text-xs font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">100% Safety Protocol</p>
+                <p className="text-xs text-gray-300">100% Safety Protocol</p>
               </AnimatedSection>
             </div>
 
             <AnimatedSection delay={500} className="pt-4 flex flex-wrap gap-4">
               <Link
                 to="/services#civil-building"
-                className="inline-flex items-center px-6 py-3.5 text-xs uppercase tracking-wider font-extrabold rounded bg-[#E3A129] text-[#10243A] hover:bg-[#C88B1E] transition-all duration-200 shadow-xl hover:-translate-y-0.5"
+                className="inline-flex items-center px-6 py-3.5 text-xs uppercase tracking-wider font-semibold rounded bg-[#E3A129] text-[#10243A] hover:bg-[#C88B1E] transition-all duration-200 shadow hover:-translate-y-0.5"
               >
                 <span>Explore Civil & Building Works</span>
                 <ChevronRight className="w-4 h-4 ml-1.5" />
               </Link>
               <Link
                 to="/compliance"
-                className="inline-flex items-center px-6 py-3.5 text-xs uppercase tracking-wider font-extrabold rounded bg-[#10243A] text-white border-2 border-white hover:bg-white hover:text-[#10243A] transition-all duration-200 shadow-xl hover:-translate-y-0.5"
+                className="inline-flex items-center px-6 py-3.5 text-xs uppercase tracking-wider font-semibold rounded border border-gray-400 text-white hover:bg-white hover:text-[#10243A] transition-all duration-200 shadow hover:-translate-y-0.5"
               >
                 <span>Inspect Licences & Registrations</span>
               </Link>
