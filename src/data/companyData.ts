@@ -64,7 +64,10 @@ export const COMPANY_INFO = {
   },
   
   website: 'www.rumuli.co.tz',
-  logoUrl: 'https://i.postimg.cc/XX63XyJs/102795.png',
+  logoUrl: '/logo.png',
+  logoWhiteUrl: '/logo-white.png',
+  logoIconUrl: '/logo-icon.png',
+  logoOriginalUrl: 'https://i.postimg.cc/XX63XyJs/102795.png',
   
   vision: 'To be a dynamic and leading power services company locally and internationally.',
   mission: 'To consult for, construct, supply and maintain comprehensive, premium-quality civil, building, electrical and electronic works, telecommunications and ICT engineering.',

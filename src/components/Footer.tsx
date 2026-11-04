@@ -19,12 +19,12 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-12 border-b border-[#1D4064]">
           {/* Brand & Corporate Overview (4 cols) */}
           <div className="lg:col-span-4 space-y-4">
-            {/* Logo in clean light container for contrast */}
-            <div className="inline-block bg-white p-2.5 rounded-sm shadow-sm">
+            {/* Prominent logo with transparent background (no white container) */}
+            <div className="py-1">
               <img 
-                src={COMPANY_INFO.logoUrl} 
+                src={COMPANY_INFO.logoWhiteUrl} 
                 alt="RUMULI CORPORATE Official Logo" 
-                className="h-12 w-auto object-contain"
+                className="h-12 sm:h-14 md:h-16 w-auto object-contain"
                 loading="lazy"
               />
             </div>

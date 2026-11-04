@@ -87,21 +87,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
       </div>
 
       {/* Main Navigation Bar */}
-      <div className={`transition-all duration-200 ${isScrolled ? 'py-3' : 'py-4'} px-4 sm:px-6 lg:px-8 border-b border-gray-100 bg-white`}>
+      <div className={`transition-all duration-200 ${isScrolled ? 'py-2.5' : 'py-3.5'} px-4 sm:px-6 lg:px-8 border-b border-gray-100 bg-white`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo & Brand Identity */}
-          <Link to="/" className="flex items-center space-x-3 group focus:outline-none focus:ring-2 focus:ring-amber-brand rounded p-1">
-            {/* White clean background container for optimal contrast */}
-            <div className="bg-white p-1 rounded flex items-center justify-center">
-              <img 
-                src={COMPANY_INFO.logoUrl} 
-                alt="RUMULI CORPORATE Logo - Rumuli Engineering & Live Line Technology Limited" 
-                className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
-                loading="eager"
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg sm:text-xl font-bold tracking-tight text-[#10243A] leading-tight group-hover:text-amber-brand transition-colors">
+          <Link to="/" className="flex items-center space-x-3.5 group focus:outline-none py-1">
+            <img 
+              src={COMPANY_INFO.logoUrl} 
+              alt="RUMULI CORPORATE - Rumuli Engineering & Live Line Technology Limited" 
+              className="h-12 sm:h-14 md:h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+              loading="eager"
+            />
+            <div className="hidden sm:flex flex-col border-l border-gray-200 pl-3">
+              <span className="text-sm sm:text-base font-bold tracking-tight text-[#10243A] leading-tight group-hover:text-amber-brand transition-colors">
                 {COMPANY_INFO.brandName}
               </span>
               <span className="text-[10px] sm:text-[11px] tracking-wider uppercase font-semibold text-[#667482]">
@@ -169,14 +166,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
             className="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-xl flex flex-col justify-between"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center">
                 <img 
                   src={COMPANY_INFO.logoUrl} 
                   alt="RUMULI CORPORATE" 
-                  className="h-9 w-auto object-contain"
+                  className="h-10 sm:h-12 w-auto object-contain"
                 />
-                <span className="font-bold text-sm text-[#10243A]">RUMULI CORPORATE</span>
               </div>
               <button
                 type="button"
