@@ -10,7 +10,9 @@ import {
   PackageCheck,
   CheckCircle2, 
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck,
+  Truck
 } from 'lucide-react';
 import { SERVICES } from '../data/companyData';
 import { PageHeader } from '../components/PageHeader';
@@ -171,6 +173,39 @@ export const ServicesPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Equipment & Plant Mobilization Callout */}
+      <section className="bg-white border-y border-gray-200 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AnimatedSection direction="up">
+            <div className="p-6 sm:p-8 bg-[#F4F5F6] border border-gray-200 rounded-sm card-hover-lift flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-3xl">
+                <div className="inline-flex items-center space-x-2 text-xs font-bold text-amber-hover uppercase tracking-wider">
+                  <Truck className="w-4 h-4 text-amber-brand" />
+                  <span>Company-Owned Tools, Plants & Transport Fleet</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-[#10243A]">
+                  Guaranteed Execution with Self-Owned Testing Kits & Machinery
+                </h3>
+                <p className="text-xs sm:text-sm text-[#4B5763] leading-relaxed">
+                  We maintain our own high-precision diagnostic instruments (MEGGER, Sverker 760 secondary injection, Foster 60sx oil dielectric, breaker analyzers), machine tools, and utility transport fleet (Pickups, Toyota 4WDs, Ford TW 25 Tractor). Plus, heavy cranes and articulated trucks are available on instant standby.
+                </p>
+              </div>
+
+              <div className="flex-shrink-0">
+                <Link
+                  to="/about#equipment"
+                  className="inline-flex items-center px-6 py-3.5 text-xs font-semibold uppercase tracking-wider bg-[#10243A] text-white hover:bg-[#16314D] transition-all duration-200 rounded-sm shadow hover:-translate-y-0.5"
+                >
+                  <ShieldCheck className="w-4 h-4 mr-2 text-amber-brand" />
+                  <span>Inspect Owned Equipment List</span>
+                  <ChevronRight className="w-3.5 h-3.5 ml-1.5 text-amber-brand" />
+                </Link>
+              </div>
+            </div>
+          </AnimatedSection>
+        </div>
+      </section>
 
       {/* Live-Line Safety & Methodology Callout */}
       <section className="bg-[#10243A] text-white py-16 border-t-4 border-amber-brand">

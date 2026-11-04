@@ -482,3 +482,97 @@ export const MANAGEMENT_TEAM = [
   }
 ];
 
+export interface EquipmentItem {
+  id: string;
+  name: string;
+  specification?: string;
+  registration?: string;
+}
+
+export interface EquipmentGroup {
+  id: string;
+  title: string;
+  subtitle: string;
+  iconName: string;
+  count: number;
+  items: EquipmentItem[];
+}
+
+export const COMPANY_EQUIPMENT_GROUPS: EquipmentGroup[] = [
+  {
+    id: 'hand-tools',
+    title: 'Hand Tools',
+    subtitle: 'Essential Rigging, Termination & Mechanical Field Kits',
+    iconName: 'Wrench',
+    count: 7,
+    items: [
+      { id: 'ht-1', name: 'Flat and star screw drivers' },
+      { id: 'ht-2', name: 'Spanner sets (Imperial & Metric)' },
+      { id: 'ht-3', name: 'Hammers & mallets' },
+      { id: 'ht-4', name: 'Ladders (Aluminium & insulated fiber extension ladders)' },
+      { id: 'ht-5', name: 'Technician tools with complete accessories' },
+      { id: 'ht-6', name: 'Soldering guns & electronic repair kits' },
+      { id: 'ht-7', name: 'Hand drill machines' }
+    ]
+  },
+  {
+    id: 'instruments',
+    title: 'Electrical and Mechanical Instruments',
+    subtitle: 'Calibrated Substation, Transformer & Protective Relay Testing Equipment',
+    iconName: 'Cpu',
+    count: 15,
+    items: [
+      { id: 'inst-1', name: "MultiMate's M2006-AVO", specification: 'High-precision multimeter testing kit' },
+      { id: 'inst-2', name: 'Micro ohmmeter', specification: 'For measuring contact resistances of circuit breakers' },
+      { id: 'inst-3', name: 'Earth resistance meter', specification: 'MEGGER ET6/3' },
+      { id: 'inst-4', name: 'Secondary Injection kit', specification: 'Sverker 760' },
+      { id: 'inst-5', name: 'Insulation resistance meter', specification: 'MEGGER BM 12' },
+      { id: 'inst-6', name: 'Variable DC power supply', specification: 'Stabilized benchtop and field power supply' },
+      { id: 'inst-7', name: 'Three-Phase Variac (Threasevariac)', specification: 'T210 variable transformer' },
+      { id: 'inst-8', name: 'DC pressure kit', specification: 'High-voltage insulation and withstand pressure testing' },
+      { id: 'inst-9', name: 'Grooser cable fault locator', specification: 'For locating earth faults and shorts on power cables' },
+      { id: 'inst-10', name: 'Magnus Step-up transformer unit', specification: 'Specialized testing voltage step-up unit' },
+      { id: 'inst-11', name: 'Oil Dielectric strength test kit', specification: 'Type Foster 60sx for insulating oil breakdown testing' },
+      { id: 'inst-12', name: 'Breaker System analyzer', specification: 'Timing, velocity, and trip-close dynamic testing' },
+      { id: 'inst-13', name: 'Transformer Winding resistance meter', specification: 'Precision dual-channel DC winding resistance' },
+      { id: 'inst-14', name: 'Earth leakage tester', specification: 'Type AVO 300DCM' },
+      { id: 'inst-15', name: 'Odean Primary Injection kit', specification: 'High-current primary injection testing kit' }
+    ]
+  },
+  {
+    id: 'light-machines',
+    title: 'Light Machines',
+    subtitle: 'Workshop Fabrication, Metalworking & Utility Pumps',
+    iconName: 'Hammer',
+    count: 5,
+    items: [
+      { id: 'lm-1', name: 'Drilling machines (Hand and Table type)' },
+      { id: 'lm-2', name: 'Grinder machine' },
+      { id: 'lm-3', name: 'Welding machine (Heavy-duty arc welding unit)' },
+      { id: 'lm-4', name: 'Compressor (Industrial air compressor)' },
+      { id: 'lm-5', name: 'Water pump (Submersible & dewatering pump)' }
+    ]
+  },
+  {
+    id: 'plants-transport',
+    title: 'Plants and Transport',
+    subtitle: 'Company-Owned Field Mobilization Fleet & Heavy Workhorse Tractor',
+    iconName: 'Truck',
+    count: 6,
+    items: [
+      { id: 'pt-1', name: 'Portable generator HONDA BE 1900', specification: '5 kVA site power unit' },
+      { id: 'pt-2', name: 'MITSUBISH - Pickup', registration: 'T 203 AKS' },
+      { id: 'pt-3', name: 'TOYOTA VAN', registration: 'T 500 AMA' },
+      { id: 'pt-4', name: 'TOYOTA CRV', registration: 'T 287 AQR' },
+      { id: 'pt-5', name: 'MTRACTOR, FORD TW 25', specification: 'Heavy-duty agricultural & line-clearing tractor' },
+      { id: 'pt-6', name: 'TOYOTA HILUX D/CABIN', registration: 'T 689 CXS' }
+    ]
+  }
+];
+
+export const EQUIPMENT_ON_DEMAND_NOTE = {
+  headline: 'Instant Heavy Machinery Mobilization',
+  content: 'NB: Other equipment not listed above, such as big trucks and cranes, are available for hire almost instantly through our vetted plant hire agreements.'
+};
+
+

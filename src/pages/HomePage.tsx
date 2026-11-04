@@ -16,6 +16,7 @@ import { COMPANY_INFO, SERVICES, PROJECTS, CLIENT_LOGOS } from '../data/companyD
 import { ProjectCard } from '../components/ProjectCard';
 import { AnimatedSection } from '../components/AnimatedSection';
 import { AnimatedCounter } from '../components/AnimatedCounter';
+import { EquipmentSection } from '../components/EquipmentSection';
 
 export const HomePage: React.FC = () => {
   const featuredProjects = PROJECTS.filter(p => p.featured);
@@ -389,6 +390,13 @@ export const HomePage: React.FC = () => {
               >
                 <span>Inspect Licences & Registrations</span>
               </Link>
+              <Link
+                to="/about#equipment"
+                className="inline-flex items-center px-6 py-3.5 text-xs uppercase tracking-wider font-semibold rounded border border-amber-brand/80 text-amber-brand hover:bg-amber-brand hover:text-[#10243A] transition-all duration-200 shadow hover:-translate-y-0.5"
+              >
+                <span>Owned Tools & Equipment</span>
+                <ChevronRight className="w-4 h-4 ml-1.5" />
+              </Link>
             </AnimatedSection>
           </div>
         </div>
@@ -462,7 +470,10 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 7. OUR APPROACH */}
+      {/* 7. TOOLS, PLANTS AND EQUIPMENTS OWNED BY THE COMPANY */}
+      <EquipmentSection />
+
+      {/* 8. OUR APPROACH */}
       <section className="py-16 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>

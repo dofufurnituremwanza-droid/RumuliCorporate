@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Target, 
   Compass, 
@@ -10,8 +10,22 @@ import {
 import { COMPANY_INFO, MANAGEMENT_TEAM } from '../data/companyData';
 import { PageHeader } from '../components/PageHeader';
 import { AnimatedSection } from '../components/AnimatedSection';
+import { EquipmentSection } from '../components/EquipmentSection';
 
 export const AboutPage: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const element = document.getElementById(location.hash.replace('#', ''));
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      }
+    }
+  }, [location.hash]);
+
   return (
     <div className="bg-[#F4F5F6] overflow-x-hidden">
       <PageHeader 
@@ -299,6 +313,9 @@ export const AboutPage: React.FC = () => {
           </AnimatedSection>
         </div>
       </section>
+
+      {/* 6. LIST OF TOOLS, PLANTS AND EQUIPMENTS OWNED BY THE COMPANY */}
+      <EquipmentSection />
 
       {/* Navigation CTA */}
       <section className="py-12 bg-[#F4F5F6] border-t border-gray-200">
