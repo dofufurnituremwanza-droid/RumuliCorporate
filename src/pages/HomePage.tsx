@@ -294,8 +294,8 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4. MID-PAGE: INFRASTRUCTURE MATERIALS & VERIFIABLE CREDENTIALS WITH BACKGROUND PICTURE */}
-      <section className="relative bg-[#10243A] text-white overflow-hidden py-20 lg:py-28 border-y-4 border-[#E3A129]">
-        {/* Requested Construction Materials Background Picture with High Quality Display */}
+      <section className="relative overflow-hidden py-20 lg:py-28 border-y-4 border-[#E3A129]">
+        {/* Full-width Natural Background Picture with ZERO Blue Overlay */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img 
             src="/images/construction-materials.jpg" 
@@ -303,27 +303,17 @@ export const HomePage: React.FC = () => {
               e.currentTarget.src = "https://i.postimg.cc/d3qvCNTg/10-Building-Material-Picks-for-Strong-and-Modern-Construction.jpg";
             }}
             alt="High-strength modern construction materials, structural rebar, and infrastructure civil works"
-            className="w-full h-full object-cover object-center filter brightness-[0.38] contrast-125 transform scale-100 hover:scale-105 transition-transform duration-1000 ease-out"
+            className="w-full h-full object-cover object-center transform scale-100 hover:scale-105 transition-transform duration-1000 ease-out"
             loading="lazy"
-          />
-          {/* Deep Architectural Gradient for Optimal Legibility */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#10243A] via-[#10243A]/90 to-[#10243A]/75" />
-          {/* Subtle Blueprint Mesh */}
-          <div 
-            className="absolute inset-0 opacity-10 pointer-events-none"
-            style={{
-              backgroundImage: 'radial-gradient(circle at 1px 1px, #E3A129 1px, transparent 0)',
-              backgroundSize: '32px 32px'
-            }}
           />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left Content Column (7 cols) */}
-            <div className="lg:col-span-7 space-y-6">
+          <div className="max-w-3xl">
+            {/* Elegant glass panel container that protects text legibility while leaving the background image fully exposed */}
+            <div className="bg-black/70 backdrop-blur-md p-8 sm:p-12 rounded-sm border border-white/20 shadow-2xl space-y-6">
               <AnimatedSection direction="left">
-                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-sm bg-[#16314D]/90 border border-amber-brand/40 text-xs font-bold text-amber-brand uppercase tracking-wider mb-2">
+                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-sm bg-black/60 border border-amber-brand/50 text-xs font-bold text-amber-brand uppercase tracking-wider mb-2">
                   <ShieldCheck className="w-3.5 h-3.5 text-amber-brand" />
                   <span>Quality Engineering • Modern Infrastructure</span>
                 </div>
@@ -333,14 +323,14 @@ export const HomePage: React.FC = () => {
                   <span className="text-[#E3A129]">Engineered For Longevity.</span>
                 </h2>
 
-                <p className="text-sm sm:text-base text-gray-200 leading-relaxed font-normal mt-4 max-w-2xl">
+                <p className="text-sm sm:text-base text-gray-200 leading-relaxed font-normal mt-4">
                   Across power substations, transmission networks, and industrial civil works, Rumuli Corporate deploys certified, high-grade construction materials—including high-tensile structural steel, TBS-approved reinforcement, heavy-duty concrete foundations, and international IEC-grade conductors designed to endure demanding environmental conditions.
                 </p>
               </AnimatedSection>
 
               {/* Verified Metrics with Animated Counters */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-gray-700/70">
-                <AnimatedSection delay={100} className="space-y-1 bg-[#10243A]/80 p-3.5 rounded border border-[#26517D]/60 backdrop-blur-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-white/20">
+                <AnimatedSection delay={100} className="space-y-1 bg-black/50 p-3.5 rounded border border-white/15">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-amber-brand block">
                     Established
                   </span>
@@ -350,7 +340,7 @@ export const HomePage: React.FC = () => {
                   <p className="text-[11px] text-gray-300">Tanzanian Enterprise</p>
                 </AnimatedSection>
 
-                <AnimatedSection delay={200} className="space-y-1 bg-[#10243A]/80 p-3.5 rounded border border-[#26517D]/60 backdrop-blur-xs">
+                <AnimatedSection delay={200} className="space-y-1 bg-black/50 p-3.5 rounded border border-white/15">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-amber-brand block">
                     Certificate No.
                   </span>
@@ -360,17 +350,17 @@ export const HomePage: React.FC = () => {
                   <p className="text-[11px] text-gray-300">BRELA Incorporation</p>
                 </AnimatedSection>
 
-                <AnimatedSection delay={300} className="space-y-1 bg-[#10243A]/80 p-3.5 rounded border border-[#26517D]/60 backdrop-blur-xs">
+                <AnimatedSection delay={300} className="space-y-1 bg-black/50 p-3.5 rounded border border-white/15">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-amber-brand block">
                     Core Disciplines
                   </span>
                   <p className="text-2xl sm:text-3xl font-extrabold text-white">
-                    <AnimatedCounter end={7} duration={1200} suffix=" Disciplines" />
+                    <AnimatedCounter end={7} duration={1200} suffix=" Sectors" />
                   </p>
                   <p className="text-[11px] text-gray-300">Turnkey Scope</p>
                 </AnimatedSection>
 
-                <AnimatedSection delay={400} className="space-y-1 bg-[#10243A]/80 p-3.5 rounded border border-[#26517D]/60 backdrop-blur-xs">
+                <AnimatedSection delay={400} className="space-y-1 bg-black/50 p-3.5 rounded border border-white/15">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-amber-brand block">
                     HSE Record
                   </span>
@@ -391,39 +381,10 @@ export const HomePage: React.FC = () => {
                 </Link>
                 <Link
                   to="/compliance"
-                  className="inline-flex items-center px-5 py-2.5 text-xs uppercase tracking-wider font-semibold rounded border border-gray-400 text-white hover:bg-white/10 transition-colors"
+                  className="inline-flex items-center px-5 py-2.5 text-xs uppercase tracking-wider font-semibold rounded border border-white/50 text-white hover:bg-white/15 transition-colors"
                 >
                   <span>Inspect Licences & Registrations</span>
                 </Link>
-              </AnimatedSection>
-            </div>
-
-            {/* Right Architectural Showcase Window (5 cols) */}
-            <div className="lg:col-span-5">
-              <AnimatedSection direction="right" delay={200}>
-                <div className="relative border-4 border-[#E3A129] shadow-2xl overflow-hidden rounded-sm group card-hover-lift">
-                  <div className="h-80 sm:h-96 w-full overflow-hidden bg-black/40">
-                    <img 
-                      src="/images/construction-materials.jpg" 
-                      onError={(e) => {
-                        e.currentTarget.src = "https://i.postimg.cc/d3qvCNTg/10-Building-Material-Picks-for-Strong-and-Modern-Construction.jpg";
-                      }}
-                      alt="Modern building materials and structural reinforcement for strong infrastructure construction"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
-                  </div>
-                  <div className="p-4 bg-[#10243A] border-t-2 border-[#E3A129] text-white">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-[#E3A129]">
-                        Materials & Engineering Integrity
-                      </span>
-                      <span className="text-[10px] font-mono text-gray-300">TBS • CRB Certified</span>
-                    </div>
-                    <p className="text-xs text-gray-300 mt-1">
-                      Reinforced structural foundations, high-grade steel, and certified live-line hardware built for durable national infrastructure.
-                    </p>
-                  </div>
-                </div>
               </AnimatedSection>
             </div>
           </div>

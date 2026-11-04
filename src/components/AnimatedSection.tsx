@@ -68,3 +68,4 @@ export const AnimatedSection: React.FC<AnimatedSectionProps> = ({
     </div>
   );
 };
+
