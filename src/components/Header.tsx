@@ -49,9 +49,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white shadow-sm transition-all duration-200">
-      {/* Top Utility Bar (Desktop & Tablet) */}
-      <div className="bg-[#10243A] text-white text-xs py-2 px-4 sm:px-6 lg:px-8 border-b border-[#16314D]">
+    <header className="sticky top-0 z-50 w-full transition-all duration-300">
+      {/* Top Utility Bar (Desktop & Tablet) - Liquid Glass Navy */}
+      <div className="liquid-glass-topbar text-white text-xs py-2 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-y-1">
           <div className="flex items-center space-x-6 text-gray-300">
             <span className="flex items-center space-x-1.5 font-medium text-amber-brand">
@@ -86,17 +86,23 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
         </div>
       </div>
 
-      {/* Main Navigation Bar */}
-      <div className={`transition-all duration-200 ${isScrolled ? 'py-2.5' : 'py-3.5'} px-4 sm:px-6 lg:px-8 border-b border-gray-100 bg-white`}>
+      {/* Main Navigation Bar - Liquid Glass Translucent with Crisp Logo */}
+      <div className={`transition-all duration-300 ${isScrolled ? 'py-2 sm:py-2.5 liquid-glass-header-scrolled' : 'py-3 sm:py-3.5 liquid-glass-header'} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo & Brand Identity */}
-          <Link to="/" className="flex items-center group focus:outline-none py-1" aria-label="RUMULI CORPORATE Home">
-            <img 
-              src={COMPANY_INFO.logoUrl} 
-              alt="RUMULI CORPORATE - Rumuli Engineering & Live Line Technology Limited" 
-              className="h-10 sm:h-11 md:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
-              loading="eager"
-            />
+          {/* Logo & Brand Identity - Optimized for Visibility */}
+          <Link 
+            to="/" 
+            className="flex items-center group focus:outline-none py-0.5" 
+            aria-label="RUMULI CORPORATE Home"
+          >
+            <div className="relative flex items-center p-1 rounded-md transition-all duration-200 group-hover:scale-[1.02]">
+              <img 
+                src={COMPANY_INFO.logoUrl} 
+                alt="RUMULI CORPORATE - Rumuli Engineering & Live Line Technology Limited" 
+                className="h-11 sm:h-12 md:h-14 w-auto object-contain logo-glass-halo"
+                loading="eager"
+              />
+            </div>
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -107,15 +113,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-3.5 py-2 text-sm font-medium transition-colors relative ${
+                  className={`px-3.5 py-2 text-sm font-semibold transition-colors relative ${
                     active 
-                      ? 'text-[#10243A] font-semibold' 
-                      : 'text-[#667482] hover:text-[#10243A]'
+                      ? 'text-[#10243A]' 
+                      : 'text-[#4B5763] hover:text-[#10243A]'
                   }`}
                 >
                   {link.name}
                   {active && (
-                    <span className="absolute bottom-0 left-3.5 right-3.5 h-[2px] bg-[#E3A129]" />
+                    <span className="absolute bottom-0 left-3.5 right-3.5 h-[2.5px] bg-[#E3A129] rounded-full shadow-xs" />
                   )}
                 </Link>
               );
@@ -127,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
             <Link
               to="/contact"
               onClick={onOpenConsultation}
-              className="hidden sm:inline-flex items-center justify-center px-4 py-2.5 text-xs uppercase tracking-wider font-semibold rounded bg-[#10243A] text-white hover:bg-[#16314D] border border-[#10243A] transition-all duration-150 shadow-sm hover:shadow"
+              className="hidden sm:inline-flex items-center justify-center px-4 py-2.5 text-xs uppercase tracking-wider font-bold rounded-sm bg-[#10243A] text-white hover:bg-[#16314D] border border-[#10243A] transition-all duration-150 shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               <span>Request Consultation</span>
               <ChevronRight className="w-3.5 h-3.5 ml-1 text-[#E3A129]" />
@@ -137,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded text-[#10243A] hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-brand"
+              className="lg:hidden p-2 rounded text-[#10243A] hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-amber-brand"
               aria-label="Toggle navigation menu"
               aria-expanded={mobileMenuOpen}
             >
@@ -153,17 +159,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-none" onClick={() => setMobileMenuOpen(false)}>
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}>
           <div 
-            className="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-xl flex flex-col justify-between"
+            className="fixed inset-y-0 right-0 w-full max-w-xs bg-white/95 backdrop-blur-xl shadow-2xl flex flex-col justify-between border-l border-white/40"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="p-4 border-b border-gray-100/80 flex items-center justify-between">
               <div className="flex items-center">
                 <img 
                   src={COMPANY_INFO.logoUrl} 
                   alt="RUMULI CORPORATE" 
-                  className="h-10 sm:h-12 w-auto object-contain"
+                  className="h-11 sm:h-12 w-auto object-contain logo-glass-halo"
                 />
               </div>
               <button

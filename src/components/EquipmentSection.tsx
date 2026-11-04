@@ -205,3 +205,4 @@ export const EquipmentSection: React.FC<EquipmentSectionProps> = ({ compact = fa
     </section>
   );
 };
+
