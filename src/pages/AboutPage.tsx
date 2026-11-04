@@ -38,20 +38,49 @@ export const AboutPage: React.FC = () => {
               <AnimatedSection delay={150}>
                 <div className="prose text-[#4B5763] text-sm sm:text-base leading-relaxed space-y-4">
                   <p>
-                    <strong>Rumuli Engineering & Live Line Technology Limited</strong> is a private Tanzanian engineering and procurement company incorporated in 2016 (Certificate of Incorporation No. 123062). Operating under the commercial identity <strong>RUMULI CORPORATE</strong>, we provide specialized engineering solutions to utility corporations, government agencies, telecommunications enterprises, and industrial clients throughout Tanzania.
+                    <strong>Rumuli Engineering & Live Line Technology Limited</strong> is a private company registered in 2016 under the laws of the United Republic of Tanzania, with certificate number <strong>123062</strong>. The founders of the company are Tanzanian Citizens with extensive experience in the business of Civil, Building, Mechanical, Electrical and Electronics Engineering for many years.
                   </p>
                   <p>
-                    Over the years, Rumuli has built a reputation for tackling complex infrastructure assignments—from high-voltage 220kV substation reactor commissioning and turnkey overhead transmission lines to live-line maintenance on energized networks and nationwide fiber optic rollouts.
+                    Growing to become one of East Africa’s largest and most respected project management, engineering and procurement companies, Rumuli attribute their success to being known for reliability, flexibility and a pursuit of project excellence.
                   </p>
                   <p>
-                    Our team combines registered electrical and civil engineers, certified high-voltage technicians, specialized linemen, and experienced procurement professionals. Headquartered in Tegeta Azania, Dar es Salaam, our operations span national grid projects, rural electrification initiatives, and private commercial developments.
+                    Success with delivering large infrastructure assets in developing countries rests in strong supply chain management, stringent quality control and a reliable, skilled workforce.
                   </p>
+                </div>
+
+                {/* Motives for Establishing the Company */}
+                <div className="pt-4">
+                  <h3 className="text-xs uppercase font-bold tracking-wider text-[#10243A] mb-3">
+                    The Motive for Establishing the Company:
+                  </h3>
+                  <div className="space-y-2.5 bg-[#F4F5F6] p-5 rounded-sm border-l-4 border-amber-brand text-xs sm:text-sm text-gray-800">
+                    <p className="flex items-start">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-brand mt-2 mr-2.5 flex-shrink-0" />
+                      <span>To have a platform for the Founders to share their knowledge and experience.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-brand mt-2 mr-2.5 flex-shrink-0" />
+                      <span>To discover and develop new technology and put it into practice.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-brand mt-2 mr-2.5 flex-shrink-0" />
+                      <span>To offer electricity power services and by so doing earn income.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-brand mt-2 mr-2.5 flex-shrink-0" />
+                      <span>To contribute to government revenue through the payment of taxes.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-brand mt-2 mr-2.5 flex-shrink-0" />
+                      <span>To comply with the government call of establishing local and indigenous companies and economic empowerment for Tanzanians.</span>
+                    </p>
+                  </div>
                 </div>
 
                 <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
                   <div className="p-3.5 bg-[#F4F5F6] border-l-4 border-amber-brand card-hover-lift">
                     <span className="block font-bold text-[#10243A]">Incorporated</span>
-                    <span className="text-[#667482]">2016 in Dar es Salaam, Tanzania</span>
+                    <span className="text-[#667482]">2016 in Dar es Salaam, Tanzania (No. 123062)</span>
                   </div>
                   <div className="p-3.5 bg-[#F4F5F6] border-l-4 border-amber-brand card-hover-lift">
                     <span className="block font-bold text-[#10243A]">Contractor Status</span>

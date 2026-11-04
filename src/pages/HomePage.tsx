@@ -111,12 +111,12 @@ export const HomePage: React.FC = () => {
       {/* 2. COMPANY INTRODUCTION */}
       <section className="py-16 sm:py-24 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             {/* Left Column: Text (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
               <AnimatedSection direction="left">
                 <span className="text-xs uppercase font-bold tracking-widest text-amber-hover block mb-1">
-                  Tanzanian Engineering Excellence
+                  Corporate Background & Motives
                 </span>
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#10243A] tracking-tight leading-tight">
                   Engineering With Purpose. <br />
@@ -127,35 +127,44 @@ export const HomePage: React.FC = () => {
               <AnimatedSection delay={150}>
                 <div className="prose text-[#4B5763] text-sm sm:text-base leading-relaxed space-y-4">
                   <p>
-                    Established in 2016 in Tanzania, <strong>Rumuli Engineering & Live Line Technology Limited</strong> (operating commercially as <strong>RUMULI CORPORATE</strong>) has evolved into a trusted multidisciplinary engineering, power infrastructure, and procurement partner for government authorities, power utilities, telecommunications operators, and commercial contractors.
+                    <strong>Rumuli Engineering & Live Line Technology Limited</strong> is a private company registered in 2016 under the laws of the United Republic of Tanzania, with certificate number <strong>123062</strong>. The founders of the company are Tanzanian Citizens with extensive experience in the business of Civil, Building, Mechanical, Electrical and Electronics Engineering for many years.
                   </p>
                   <p>
-                    Our multidisciplinary engineering capabilities encompass electrical power infrastructure, transmission and distribution networks up to 220kV, electrical substations, specialized live-line works, telecommunications and fiber optics, civil and structural building works, mechanical plant maintenance, and engineering equipment procurement.
+                    Growing to become one of East Africa’s largest and most respected project management, engineering and procurement companies, Rumuli attribute their success to being known for reliability, flexibility and a pursuit of project excellence.
                   </p>
                   <p>
-                    Rooted in an unyielding culture of safety, technical rigor, and accountability, we manage projects from initial site survey and engineering design through to field execution, testing, and regulatory commissioning.
+                    Success with delivering large infrastructure assets in developing countries rests in strong supply chain management, stringent quality control and a reliable, skilled workforce.
                   </p>
                 </div>
               </AnimatedSection>
 
-              {/* Pillars checklist */}
+              {/* The 5 Motives for Establishing Rumuli */}
               <AnimatedSection delay={250}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <div className="flex items-center space-x-2 text-xs sm:text-sm text-[#10243A] font-medium">
-                    <CheckCircle className="w-4 h-4 text-amber-brand flex-shrink-0" />
-                    <span>CRB Registered Electrical Contractor</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-xs sm:text-sm text-[#10243A] font-medium">
-                    <CheckCircle className="w-4 h-4 text-amber-brand flex-shrink-0" />
-                    <span>220kV Substation & Reactor Experience</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-xs sm:text-sm text-[#10243A] font-medium">
-                    <CheckCircle className="w-4 h-4 text-amber-brand flex-shrink-0" />
-                    <span>Trained Live-Line Maintenance Teams</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-xs sm:text-sm text-[#10243A] font-medium">
-                    <CheckCircle className="w-4 h-4 text-amber-brand flex-shrink-0" />
-                    <span>Proven Delivery for TANESCO, REA & Vodacom</span>
+                <div className="pt-2">
+                  <h3 className="text-xs uppercase font-bold tracking-wider text-[#10243A] mb-3">
+                    The Motive for Establishing the Company:
+                  </h3>
+                  <div className="space-y-2.5 bg-[#F4F5F6] p-5 rounded-sm border-l-4 border-amber-brand">
+                    <div className="flex items-start text-xs sm:text-sm text-gray-800">
+                      <CheckCircle className="w-4 h-4 text-amber-brand mr-2.5 mt-0.5 flex-shrink-0" />
+                      <span>To have a platform for the Founders to share their knowledge and experience.</span>
+                    </div>
+                    <div className="flex items-start text-xs sm:text-sm text-gray-800">
+                      <CheckCircle className="w-4 h-4 text-amber-brand mr-2.5 mt-0.5 flex-shrink-0" />
+                      <span>To discover and develop new technology and put it into practice.</span>
+                    </div>
+                    <div className="flex items-start text-xs sm:text-sm text-gray-800">
+                      <CheckCircle className="w-4 h-4 text-amber-brand mr-2.5 mt-0.5 flex-shrink-0" />
+                      <span>To offer electricity power services and by so doing earn income.</span>
+                    </div>
+                    <div className="flex items-start text-xs sm:text-sm text-gray-800">
+                      <CheckCircle className="w-4 h-4 text-amber-brand mr-2.5 mt-0.5 flex-shrink-0" />
+                      <span>To contribute to government revenue through the payment of taxes.</span>
+                    </div>
+                    <div className="flex items-start text-xs sm:text-sm text-gray-800">
+                      <CheckCircle className="w-4 h-4 text-amber-brand mr-2.5 mt-0.5 flex-shrink-0" />
+                      <span>To comply with the government call of establishing local and indigenous companies and economic empowerment for Tanzanians.</span>
+                    </div>
                   </div>
                 </div>
               </AnimatedSection>
