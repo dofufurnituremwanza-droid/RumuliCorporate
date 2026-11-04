@@ -90,21 +90,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
       <div className={`transition-all duration-200 ${isScrolled ? 'py-2.5' : 'py-3.5'} px-4 sm:px-6 lg:px-8 border-b border-gray-100 bg-white`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo & Brand Identity */}
-          <Link to="/" className="flex items-center space-x-3.5 group focus:outline-none py-1">
+          <Link to="/" className="flex items-center group focus:outline-none py-1" aria-label="RUMULI CORPORATE Home">
             <img 
               src={COMPANY_INFO.logoUrl} 
               alt="RUMULI CORPORATE - Rumuli Engineering & Live Line Technology Limited" 
-              className="h-12 sm:h-14 md:h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+              className="h-10 sm:h-11 md:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
               loading="eager"
             />
-            <div className="hidden sm:flex flex-col border-l border-gray-200 pl-3">
-              <span className="text-sm sm:text-base font-bold tracking-tight text-[#10243A] leading-tight group-hover:text-amber-brand transition-colors">
-                {COMPANY_INFO.brandName}
-              </span>
-              <span className="text-[10px] sm:text-[11px] tracking-wider uppercase font-semibold text-[#667482]">
-                {COMPANY_INFO.positioning}
-              </span>
-            </div>
           </Link>
 
           {/* Desktop Navigation Links */}
