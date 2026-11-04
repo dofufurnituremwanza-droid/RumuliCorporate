@@ -3,11 +3,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   Phone, 
   Mail, 
-  MapPin, 
   Menu, 
   X, 
-  ChevronRight,
-  ShieldCheck
+  ChevronRight
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
 
@@ -50,44 +48,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
 
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
-      {/* Top Utility Bar (Desktop & Tablet) - Liquid Glass Navy */}
-      <div className="liquid-glass-topbar text-white text-xs py-2 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-y-1">
-          <div className="flex items-center space-x-6 text-gray-300">
-            <span className="flex items-center space-x-1.5 font-medium text-amber-brand">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-brand" />
-              <span>Registered in Tanzania • Cert No. {COMPANY_INFO.registrationNumber}</span>
-            </span>
-            <span className="hidden md:inline-block text-gray-400">|</span>
-            <span className="hidden md:flex items-center space-x-1 text-gray-300">
-              <MapPin className="w-3.5 h-3.5 text-amber-brand" />
-              <span>Tegeta Azania, Dar es Salaam</span>
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-5 text-gray-300">
-            <a 
-              href={`tel:${COMPANY_INFO.phones.primary.replace(/\s+/g, '')}`}
-              className="flex items-center space-x-1.5 hover:text-white transition-colors"
-            >
-              <Phone className="w-3.5 h-3.5 text-amber-brand" />
-              <span>{COMPANY_INFO.phones.primary}</span>
-            </a>
-            <span className="text-gray-500">|</span>
-            <a 
-              href={`mailto:${COMPANY_INFO.emails.corporate}`}
-              className="flex items-center space-x-1.5 hover:text-white transition-colors"
-            >
-              <Mail className="w-3.5 h-3.5 text-amber-brand" />
-              <span className="hidden sm:inline">{COMPANY_INFO.emails.corporate}</span>
-              <span className="sm:hidden">Email</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navigation Bar - Liquid Glass Translucent (Zero White) with Crisp White Logo */}
-      <div className={`transition-all duration-300 ${isScrolled ? 'py-2 sm:py-2.5 liquid-glass-header-scrolled' : 'py-3 sm:py-3.5 liquid-glass-header'} px-4 sm:px-6 lg:px-8`}>
+      <div className={`transition-all duration-300 ${isScrolled ? 'py-2.5 sm:py-3 liquid-glass-header-scrolled' : 'py-3.5 sm:py-4 liquid-glass-header'} px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo & Brand Identity - White & Amber on Dark Liquid Glass */}
           <Link 
