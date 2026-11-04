@@ -3,6 +3,7 @@ import { ProjectCard } from '../components/ProjectCard';
 import { PROJECTS, CLIENT_LOGOS } from '../data/companyData';
 import { PageHeader } from '../components/PageHeader';
 import { Building2, Filter, FileCheck2, Info } from 'lucide-react';
+import { AnimatedSection } from '../components/AnimatedSection';
 
 export const ProjectsPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string>('All');
@@ -20,7 +21,7 @@ export const ProjectsPage: React.FC = () => {
     : PROJECTS.filter(p => p.category === activeFilter);
 
   return (
-    <div className="bg-[#F4F5F6]">
+    <div className="bg-[#F4F5F6] overflow-x-hidden">
       <PageHeader 
         badge="Documented Engineering Portfolio"
         title="Infrastructure Projects & Practical Experience"
@@ -45,9 +46,9 @@ export const ProjectsPage: React.FC = () => {
                 key={category}
                 type="button"
                 onClick={() => setActiveFilter(category)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-sm transition-colors ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-sm transition-all duration-200 ${
                   activeFilter === category
-                    ? 'bg-[#10243A] text-white shadow-xs'
+                    ? 'bg-[#10243A] text-white shadow-xs scale-105'
                     : 'bg-gray-100 text-[#667482] hover:bg-gray-200 hover:text-[#10243A]'
                 }`}
               >
@@ -61,70 +62,77 @@ export const ProjectsPage: React.FC = () => {
       {/* Main Project Grid */}
       <section className="py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-[#10243A]">
-              {activeFilter === 'All' ? 'All Documented Assignments' : `${activeFilter} Projects`}
-              <span className="ml-2 text-sm font-normal text-[#667482]">
-                ({filteredProjects.length} records)
-              </span>
-            </h2>
+          <AnimatedSection>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-bold text-[#10243A]">
+                {activeFilter === 'All' ? 'All Documented Assignments' : `${activeFilter} Projects`}
+                <span className="ml-2 text-sm font-normal text-[#667482]">
+                  ({filteredProjects.length} records)
+                </span>
+              </h2>
 
-            <div className="hidden sm:flex items-center text-xs text-gray-500 space-x-1">
-              <Info className="w-3.5 h-3.5 text-amber-brand" />
-              <span>Select any project to review complete scope</span>
+              <div className="hidden sm:flex items-center text-xs text-gray-500 space-x-1">
+                <Info className="w-3.5 h-3.5 text-amber-brand" />
+                <span>Select any project to review complete scope</span>
+              </div>
             </div>
-          </div>
+          </AnimatedSection>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+            {filteredProjects.map((project, idx) => (
+              <AnimatedSection key={project.id} delay={idx * 80} direction="up">
+                <ProjectCard project={project} />
+              </AnimatedSection>
             ))}
           </div>
 
           {/* Institutional Clients Grid */}
-          <div className="mt-16 bg-white border border-gray-200 p-8">
-            <div className="max-w-2xl mb-6">
-              <span className="text-xs uppercase font-bold tracking-widest text-amber-hover">
-                Documented Client Relationships
-              </span>
-              <h3 className="text-xl font-bold text-[#10243A] mt-1">
-                Organizations We Have Served
-              </h3>
-              <p className="text-xs text-[#667482] mt-1 leading-relaxed">
-                Rumuli has successfully delivered contracts for Tanzania's leading power utilities, rural development agencies, multinational telecommunications firms, and municipal bodies.
-              </p>
-            </div>
+          <AnimatedSection delay={200}>
+            <div className="mt-16 bg-white border border-gray-200 p-8 card-hover-lift rounded-sm">
+              <div className="max-w-2xl mb-6">
+                <span className="text-xs uppercase font-bold tracking-widest text-amber-hover">
+                  Documented Client Relationships
+                </span>
+                <h3 className="text-xl font-bold text-[#10243A] mt-1">
+                  Organizations We Have Served
+                </h3>
+                <p className="text-xs text-[#667482] mt-1 leading-relaxed">
+                  Rumuli has successfully delivered contracts for Tanzania's leading power utilities, rural development agencies, multinational telecommunications firms, and municipal bodies.
+                </p>
+              </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {CLIENT_LOGOS.map((client, idx) => (
-                <div key={idx} className="p-4 bg-[#F4F5F6] border border-gray-200 rounded-sm">
-                  <div className="flex items-center space-x-2 text-[#10243A] font-bold text-sm">
-                    <Building2 className="w-4 h-4 text-amber-brand flex-shrink-0" />
-                    <span>{client.name}</span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {CLIENT_LOGOS.map((client, idx) => (
+                  <div key={idx} className="p-4 bg-[#F4F5F6] border border-gray-200 rounded-sm card-hover-lift">
+                    <div className="flex items-center space-x-2 text-[#10243A] font-bold text-sm">
+                      <Building2 className="w-4 h-4 text-amber-brand flex-shrink-0" />
+                      <span>{client.name}</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {client.description}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {client.description}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          </AnimatedSection>
 
           {/* Project Verification Notice */}
-          <div className="mt-8 p-5 bg-[#10243A] text-white rounded-sm flex items-start space-x-4">
-            <FileCheck2 className="w-5 h-5 text-amber-brand flex-shrink-0 mt-0.5" />
-            <div className="text-xs space-y-1">
-              <p className="font-bold text-amber-brand uppercase tracking-wider">
-                Verifiable Project Track Record
-              </p>
-              <p className="text-gray-300 leading-relaxed">
-                All listed projects represent actual documented assignments undertaken by Rumuli Engineering & Live Line Technology Limited. In accordance with strict corporate ethics and confidentiality policies, proprietary contract values and internal utility specifications are kept confidential. Complete completion certificates and client references are available upon formal request for tender evaluations.
-              </p>
+          <AnimatedSection delay={300}>
+            <div className="mt-8 p-5 bg-[#10243A] text-white rounded-sm flex items-start space-x-4">
+              <FileCheck2 className="w-5 h-5 text-amber-brand flex-shrink-0 mt-0.5" />
+              <div className="text-xs space-y-1">
+                <p className="font-bold text-amber-brand uppercase tracking-wider">
+                  Verifiable Project Track Record
+                </p>
+                <p className="text-gray-300 leading-relaxed">
+                  All listed projects represent actual documented assignments undertaken by Rumuli Engineering & Live Line Technology Limited. In accordance with strict corporate ethics and confidentiality policies, proprietary contract values and internal utility specifications are kept confidential. Complete completion certificates and client references are available upon formal request for tender evaluations.
+                </p>
+              </div>
             </div>
-          </div>
+          </AnimatedSection>
         </div>
       </section>
     </div>
   );
 };
-
