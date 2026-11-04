@@ -23,23 +23,24 @@ export const HomePage: React.FC = () => {
   return (
     <div className="bg-[#F4F5F6] overflow-x-hidden">
       {/* 1. HERO SECTION */}
-      <section className="relative bg-[#10243A] text-white overflow-hidden min-h-[580px] lg:min-h-[660px] flex items-center">
-        {/* Background Image with Controlled Engineering Overlay & Ambient Animation */}
+      <section className="relative text-white overflow-hidden min-h-[600px] lg:min-h-[700px] flex items-center">
+        {/* Background Image: Vivid, High-Visibility Electrical Power Infrastructure */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=2000&q=85" 
+            src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=2000&q=90" 
             alt="High voltage electrical transmission line and power infrastructure"
-            className="w-full h-full object-cover object-center opacity-25 filter brightness-90 animate-slow-zoom"
+            className="w-full h-full object-cover object-center animate-slow-zoom"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#10243A] via-[#10243A]/90 to-[#10243A]/60" />
+          {/* Subtle natural shadow on left to ensure crisp text reading while keeping the power infrastructure photo fully visible */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-transparent" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
           <div className="max-w-3xl">
             {/* Slogan Pill */}
             <AnimatedSection direction="down">
-              <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-sm bg-[#16314D] border border-[#26517D] text-xs font-semibold text-amber-brand uppercase tracking-wider mb-6">
+              <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-sm bg-black/60 border border-amber-brand/60 text-xs font-bold text-amber-brand uppercase tracking-wider mb-6 drop-shadow-md">
                 <span className="w-2 h-2 rounded-full bg-amber-brand animate-pulse" />
                 <span>{COMPANY_INFO.slogan}</span>
               </div>
@@ -47,15 +48,15 @@ export const HomePage: React.FC = () => {
 
             {/* Main Headline */}
             <AnimatedSection delay={100}>
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.15] mb-6">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.12] mb-6 drop-shadow-[0_3px_10px_rgba(0,0,0,0.95)]">
                 Engineering Infrastructure. <br className="hidden sm:inline" />
-                <span className="text-[#E3A129]">Powering Progress.</span>
+                <span className="text-[#E3A129] drop-shadow-[0_3px_10px_rgba(0,0,0,0.95)]">Powering Progress.</span>
               </h1>
             </AnimatedSection>
 
             {/* Supporting Text */}
             <AnimatedSection delay={200}>
-              <p className="text-base sm:text-xl text-gray-300 font-normal leading-relaxed mb-8 max-w-2xl">
+              <p className="text-base sm:text-xl text-white font-medium leading-relaxed mb-8 max-w-2xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
                 Delivering engineering, electrical infrastructure, construction and procurement solutions 
                 through technical expertise, reliable execution and a commitment to quality.
               </p>
@@ -66,7 +67,7 @@ export const HomePage: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                 <Link
                   to="/services"
-                  className="inline-flex items-center justify-center px-6 py-3.5 text-sm uppercase tracking-wider font-semibold rounded bg-[#E3A129] text-[#10243A] hover:bg-[#C88B1E] transition-all duration-200 shadow-md font-sans hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center px-6 py-3.5 text-sm uppercase tracking-wider font-bold rounded bg-[#E3A129] text-[#10243A] hover:bg-[#C88B1E] transition-all duration-200 shadow-xl font-sans hover:-translate-y-0.5"
                 >
                   <span>Explore Our Services</span>
                   <ChevronRight className="w-4 h-4 ml-1.5" />
@@ -74,7 +75,7 @@ export const HomePage: React.FC = () => {
 
                 <Link
                   to="/contact"
-                  className="inline-flex items-center justify-center px-6 py-3.5 text-sm uppercase tracking-wider font-semibold rounded bg-transparent text-white border-2 border-white/80 hover:bg-white hover:text-[#10243A] transition-all duration-200 hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center px-6 py-3.5 text-sm uppercase tracking-wider font-bold rounded bg-black/40 text-white border-2 border-white/90 hover:bg-white hover:text-[#10243A] transition-all duration-200 hover:-translate-y-0.5 shadow-xl backdrop-blur-xs"
                 >
                   <span>Discuss a Project</span>
                   <ChevronRight className="w-4 h-4 ml-1.5" />
@@ -84,22 +85,22 @@ export const HomePage: React.FC = () => {
 
             {/* Bottom Proof Strip */}
             <AnimatedSection delay={400}>
-              <div className="mt-12 pt-8 border-t border-gray-700/60 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-gray-300">
+              <div className="mt-12 pt-8 border-t border-white/40 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                 <div>
-                  <span className="block text-gray-400">Jurisdiction</span>
-                  <span className="font-semibold text-white">United Republic of Tanzania</span>
+                  <span className="block text-gray-200">Jurisdiction</span>
+                  <span className="font-extrabold text-white">United Republic of Tanzania</span>
                 </div>
                 <div>
-                  <span className="block text-gray-400">Incorporation</span>
-                  <span className="font-semibold text-white">Est. 2016 • BRELA 123062</span>
+                  <span className="block text-gray-200">Incorporation</span>
+                  <span className="font-extrabold text-white">Est. 2016 • BRELA 123062</span>
                 </div>
                 <div>
-                  <span className="block text-gray-400">Accreditation</span>
-                  <span className="font-semibold text-white">CRB Registered Contractor</span>
+                  <span className="block text-gray-200">Accreditation</span>
+                  <span className="font-extrabold text-white">CRB Registered Contractor</span>
                 </div>
                 <div>
-                  <span className="block text-gray-400">Core Specialty</span>
-                  <span className="font-semibold text-white">Substations & Live-Line</span>
+                  <span className="block text-gray-200">Core Specialty</span>
+                  <span className="font-extrabold text-white">Substations & Live-Line</span>
                 </div>
               </div>
             </AnimatedSection>
