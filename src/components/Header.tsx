@@ -90,14 +90,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
           </nav>
 
           {/* Consultation Button & Staff Portal */}
-          <div className="flex items-center space-x-2.5">
+          <div className="flex items-center space-x-2 sm:space-x-2.5">
             <Link
               to="/portal"
-              className="hidden md:inline-flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-sm text-gray-200 hover:text-white hover:bg-white/10 border border-white/20 transition-all duration-150 backdrop-blur-md"
+              className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold rounded-sm text-amber-brand bg-white/5 hover:bg-white/10 border border-amber-brand/40 hover:border-amber-brand transition-all duration-150 backdrop-blur-md"
               title="Staff Operations & Worker Portal"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-brand" />
-              <span>Staff Portal</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-brand flex-shrink-0" />
+              <span className="font-bold">Staff Portal</span>
             </Link>
 
             <Link
