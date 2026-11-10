@@ -5,7 +5,6 @@ import {
   Mail, 
   MapPin, 
   ShieldCheck, 
-  ExternalLink,
   ChevronRight,
   Clock
 } from 'lucide-react';
@@ -196,32 +195,8 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Legal & Copyright Bar */}
-        <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-gray-400 gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-3 text-center md:text-left">
-            <span>© {new Date().getFullYear()} {COMPANY_INFO.brandName}. All rights reserved.</span>
-            <span className="hidden sm:inline text-gray-600">•</span>
-            <span className="text-gray-400">{COMPANY_INFO.legalName}</span>
-          </div>
-
-          <div className="flex items-center space-x-6 text-gray-400">
-            <Link to="/compliance" className="hover:text-amber-brand transition-colors">
-              Statutory Compliance
-            </Link>
-            <span className="text-gray-700">|</span>
-            <Link to="/contact" className="hover:text-amber-brand transition-colors">
-              Project Enquiries
-            </Link>
-            <span className="text-gray-700">|</span>
-            <a 
-              href={`http://${COMPANY_INFO.website}`} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="hover:text-amber-brand transition-colors inline-flex items-center"
-            >
-              <span>{COMPANY_INFO.website}</span>
-              <ExternalLink className="w-3 h-3 ml-1" />
-            </a>
-          </div>
+        <div className="pt-8 text-center text-xs text-gray-400">
+          <p>© {new Date().getFullYear()} {COMPANY_INFO.brandName}. All rights reserved.</p>
         </div>
       </div>
     </footer>
