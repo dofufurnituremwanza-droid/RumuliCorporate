@@ -5,7 +5,8 @@ import {
   Mail, 
   Menu, 
   X, 
-  ChevronRight
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
 
@@ -88,12 +89,21 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
             })}
           </nav>
 
-          {/* Consultation Button & Mobile Toggle */}
-          <div className="flex items-center space-x-3">
+          {/* Consultation Button & Staff Portal */}
+          <div className="flex items-center space-x-2.5">
+            <Link
+              to="/portal"
+              className="hidden md:inline-flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-sm text-gray-200 hover:text-white hover:bg-white/10 border border-white/20 transition-all duration-150 backdrop-blur-md"
+              title="Staff Operations & Worker Portal"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-brand" />
+              <span>Staff Portal</span>
+            </Link>
+
             <Link
               to="/contact"
               onClick={onOpenConsultation}
-              className="hidden sm:inline-flex items-center justify-center px-4 py-2.5 text-xs uppercase tracking-wider font-bold rounded-sm bg-[#E3A129] text-[#10243A] hover:bg-[#C88B1E] border border-amber-brand transition-all duration-150 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-xs uppercase tracking-wider font-bold rounded-sm bg-[#E3A129] text-[#10243A] hover:bg-[#C88B1E] border border-amber-brand transition-all duration-150 shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               <span>Request Consultation</span>
               <ChevronRight className="w-3.5 h-3.5 ml-1 text-[#10243A]" />
@@ -161,7 +171,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
                 );
               })}
 
-              <div className="pt-6">
+              <div className="pt-4 space-y-2">
+                <Link
+                  to="/portal"
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 text-xs uppercase tracking-wider font-bold rounded bg-[#16314D] text-amber-brand border border-amber-brand/40 hover:bg-[#1D3E61] transition-colors"
+                >
+                  <ShieldCheck className="w-4 h-4 text-amber-brand" />
+                  <span>Staff Operations Portal</span>
+                </Link>
+
                 <Link
                   to="/contact"
                   className="w-full flex items-center justify-center px-4 py-3 text-xs uppercase tracking-wider font-bold rounded bg-[#E3A129] text-[#10243A] hover:bg-[#C88B1E] transition-colors shadow"

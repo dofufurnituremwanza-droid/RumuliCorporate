@@ -108,6 +108,12 @@ export const Footer: React.FC = () => {
                   Contact Us
                 </Link>
               </li>
+              <li className="pt-2 border-t border-[#1D4064]">
+                <Link to="/portal" className="text-amber-brand hover:text-amber-hover transition-colors flex items-center font-bold">
+                  <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-amber-brand" />
+                  Staff Operations Portal
+                </Link>
+              </li>
             </ul>
           </div>
 
