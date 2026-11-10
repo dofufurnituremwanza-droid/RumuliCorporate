@@ -173,7 +173,7 @@ export const SERVICES: ServiceDetail[] = [
     title: 'Civil & Building Engineering',
     shortDescription: 'Structural concrete foundations, industrial building works, heavy plant plinths, drainage, and utility infrastructure.',
     fullDescription: 'Rumuli delivers robust civil engineering works designed to support heavy mechanical and electrical infrastructure. Our civil division undertakes industrial facilities, substation earthworks, drainage systems, reinforced concrete foundations, equipment plinths, commercial buildings, and access roads.',
-    image: 'https://images.unsplash.com/photo-1541888946425-d0fbb186156f?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/construction-materials.jpg',
     iconName: 'Building',
     capabilities: [
       'Heavy structural concrete foundations for transformers, generators, and reactors',

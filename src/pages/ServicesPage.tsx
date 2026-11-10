@@ -95,6 +95,9 @@ export const ServicesPage: React.FC = () => {
                       alt={service.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                       loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/construction-materials.jpg';
+                      }}
                     />
                     <div className="absolute top-4 left-4 bg-[#10243A] text-white p-2.5 rounded-sm shadow-md flex items-center space-x-2">
                       {getServiceIcon(service.iconName)}
