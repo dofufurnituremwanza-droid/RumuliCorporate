@@ -1087,3 +1087,4 @@ export const WorkerDashboard: React.FC = () => {
     </div>
   );
 };
+

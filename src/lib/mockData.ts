@@ -277,3 +277,4 @@ export const INITIAL_ACTIVITY_LOGS: ActivityLog[] = [
     category: 'ADMIN'
   }
 ];
+

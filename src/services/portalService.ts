@@ -708,3 +708,4 @@ export const PortalService = {
     setLocalItem(STORAGE_KEYS.LOGS, logs);
   }
 };
+

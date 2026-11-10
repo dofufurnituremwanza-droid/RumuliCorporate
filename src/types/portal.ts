@@ -116,3 +116,4 @@ export interface ActivityLog {
   timestamp: string;
   category: 'AUTH' | 'TASK' | 'SALARY' | 'MATERIALS' | 'EXPENSE' | 'ADMIN';
 }
+
