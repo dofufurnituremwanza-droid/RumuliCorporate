@@ -16,8 +16,8 @@ export const INITIAL_USERS: UserProfile[] = [
     designation: 'Managing Director & Principal Executive Engineer',
     baseSalary: 7500000,
     status: 'ACTIVE',
-    joinedDate: '2016-01-01',
-    avatarUrl: '/images/img-wa0052.jpg'
+    joinedDate: '2026-01-01',
+    avatarUrl: ''
   }
 ];
 
@@ -28,14 +28,4 @@ export const INITIAL_MATERIAL_REQUESTS: MaterialRequest[] = [];
 export const INITIAL_FIELD_EXPENSES: FieldExpense[] = [];
 export const INITIAL_PROJECT_REPORTS: ProjectReport[] = [];
 
-export const INITIAL_ACTIVITY_LOGS: ActivityLog[] = [
-  {
-    id: 'LOG-001',
-    workerUid: 'admin-master',
-    workerName: 'Executive Management',
-    action: 'Corporate Staff Portal Initialized',
-    details: 'Master administration established for admin@rumuli.com. Database ready for worker provisioning.',
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-    category: 'ADMIN'
-  }
-];
+export const INITIAL_ACTIVITY_LOGS: ActivityLog[] = [];

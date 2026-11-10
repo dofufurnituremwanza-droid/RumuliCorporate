@@ -8,12 +8,8 @@ import {
   KeyRound, 
   AlertCircle, 
   ArrowLeft, 
-  Database,
-  ChevronRight,
-  Info
+  ChevronRight
 } from 'lucide-react';
-import { isFirebaseConfigured } from '../../lib/firebase';
-
 export const PortalLoginPage: React.FC = () => {
   const { currentUser, login } = useAuth();
   const navigate = useNavigate();
@@ -44,11 +40,6 @@ export const PortalLoginPage: React.FC = () => {
     }
   };
 
-  const fillAdmin = () => {
-    setEmail('admin@rumuli.com');
-    setPassword('rumuli2026');
-  };
-
   return (
     <div className="min-h-screen bg-[#0B1726] text-white flex flex-col justify-between relative overflow-hidden">
       
@@ -63,11 +54,6 @@ export const PortalLoginPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4 mr-1 text-amber-brand group-hover:-translate-x-1 transition-transform" />
           <span>Back to Main Website</span>
         </Link>
-
-        <div className="flex items-center space-x-2 text-xs bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-gray-300 backdrop-blur-md">
-          <Database className="w-3.5 h-3.5 text-amber-brand" />
-          <span>Firebase Cloud Active</span>
-        </div>
       </header>
 
       {/* Login Card */}
@@ -146,22 +132,10 @@ export const PortalLoginPage: React.FC = () => {
             </button>
           </form>
 
-          {/* Quick Admin Helper Button */}
-          <div className="mt-6 pt-5 border-t border-white/10 text-center">
-            <button
-              type="button"
-              onClick={fillAdmin}
-              className="text-[11px] text-gray-400 hover:text-amber-brand flex items-center justify-center space-x-1.5 mx-auto transition-colors"
-            >
-              <Info className="w-3.5 h-3.5 text-amber-brand" />
-              <span>Click to auto-fill Admin credentials (admin@rumuli.com)</span>
-            </button>
-          </div>
-
         </div>
       </main>
 
-      <footer className="relative z-10 py-6 text-center text-xs text-gray-500 border-t border-white/5">
+      <footer className="relative z-10 py-6 px-4 text-center text-xs text-gray-500 border-t border-white/5">
         <p>© {new Date().getFullYear()} RUMULI CORPORATE (Rumuli Engineering & Live Line Technology Limited). Confidential Staff Network.</p>
       </footer>
 

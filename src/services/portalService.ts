@@ -37,7 +37,7 @@ import {
   INITIAL_ACTIVITY_LOGS
 } from '../lib/mockData';
 
-const DB_VERSION_KEY = 'rumuli_portal_v2_clean';
+const DB_VERSION_KEY = 'rumuli_portal_v4_clean';
 
 // Storage keys
 const STORAGE_KEYS = {
