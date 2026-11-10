@@ -9,6 +9,7 @@ import {
   MaterialRequest, 
   FieldExpense, 
   ActivityLog,
+  ProjectReport,
   TaskPriority,
   RequestStatus
 } from '../../types/portal';
@@ -16,9 +17,7 @@ import {
   ShieldCheck, 
   Users, 
   CheckSquare, 
-  Clock, 
   CheckCircle2, 
-  XCircle, 
   AlertCircle, 
   Plus, 
   DollarSign, 
@@ -28,22 +27,20 @@ import {
   MapPin, 
   Calendar, 
   Eye, 
-  Search, 
   X, 
   History, 
-  Building2, 
   Briefcase, 
-  Coffee, 
-  Bed, 
-  Car,
-  Filter,
-  UserPlus
+  UserPlus,
+  Camera,
+  HardHat,
+  Key,
+  Image as ImageIcon
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const { currentUser, isAdmin } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks' | 'workers' | 'audit'>('approvals');
+  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks' | 'reports' | 'workers' | 'audit'>('approvals');
   const [approvalCategory, setApprovalCategory] = useState<'all' | 'salary' | 'expenses' | 'materials'>('all');
 
   const [workers, setWorkers] = useState<UserProfile[]>([]);
@@ -51,6 +48,7 @@ export const AdminDashboard: React.FC = () => {
   const [salaryRequests, setSalaryRequests] = useState<EarlySalaryRequest[]>([]);
   const [materialRequests, setMaterialRequests] = useState<MaterialRequest[]>([]);
   const [expenses, setExpenses] = useState<FieldExpense[]>([]);
+  const [projectReports, setProjectReports] = useState<ProjectReport[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,7 +57,7 @@ export const AdminDashboard: React.FC = () => {
   const [showCreateWorkerModal, setShowCreateWorkerModal] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Review modal state
+  // Review modal state for approvals
   const [reviewItem, setReviewItem] = useState<{
     type: 'SALARY' | 'EXPENSE' | 'MATERIAL';
     id: string;
@@ -70,6 +68,14 @@ export const AdminDashboard: React.FC = () => {
   } | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
 
+  // Review modal state for project reports
+  const [reportReviewModal, setReportReviewModal] = useState<{
+    reportId: string;
+    projectTitle: string;
+    workerName: string;
+  } | null>(null);
+  const [reportReviewNotes, setReportReviewNotes] = useState('');
+
   // Form states for Assign Task
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskWorkerUid, setNewTaskWorkerUid] = useState('');
@@ -79,10 +85,12 @@ export const AdminDashboard: React.FC = () => {
   const [newTaskDeadline, setNewTaskDeadline] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
 
-  // Form states for Provision Worker
+  // Form states for Provision Worker (with Admin-set password & profile photo)
   const [newWorkerName, setNewWorkerName] = useState('');
   const [newWorkerEmpId, setNewWorkerEmpId] = useState('');
   const [newWorkerEmail, setNewWorkerEmail] = useState('');
+  const [newWorkerPassword, setNewWorkerPassword] = useState('rumuli2026');
+  const [newWorkerAvatar, setNewWorkerAvatar] = useState('');
   const [newWorkerPhone, setNewWorkerPhone] = useState('');
   const [newWorkerRole, setNewWorkerRole] = useState<'WORKER' | 'ADMIN'>('WORKER');
   const [newWorkerDept, setNewWorkerDept] = useState('Substations & Live-Line Power');
@@ -93,12 +101,13 @@ export const AdminDashboard: React.FC = () => {
   const loadAdminData = async () => {
     setLoading(true);
     try {
-      const [w, t, s, m, e, l] = await Promise.all([
+      const [w, t, s, m, e, r, l] = await Promise.all([
         PortalService.getWorkers(),
         PortalService.getTasks(),
         PortalService.getSalaryRequests(),
         PortalService.getMaterialRequests(),
         PortalService.getFieldExpenses(),
+        PortalService.getProjectReports(),
         PortalService.getActivityLogs()
       ]);
       setWorkers(w);
@@ -106,6 +115,7 @@ export const AdminDashboard: React.FC = () => {
       setSalaryRequests(s);
       setMaterialRequests(m);
       setExpenses(e);
+      setProjectReports(r);
       setActivityLogs(l);
 
       if (w.length > 0 && !newTaskWorkerUid) {
@@ -140,8 +150,9 @@ export const AdminDashboard: React.FC = () => {
   const pendingExpensesCount = expenses.filter(e => e.status === 'PENDING').length;
   const pendingMaterialsCount = materialRequests.filter(m => m.status === 'PENDING').length;
   const totalPending = pendingSalaryCount + pendingExpensesCount + pendingMaterialsCount;
+  const submittedReportsCount = projectReports.filter(r => r.status === 'SUBMITTED').length;
 
-  // Execute Review (Approve / Reject)
+  // Execute Review (Approve / Reject) for Salary, Expenses, Materials
   const handleExecuteReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviewItem) return;
@@ -156,6 +167,22 @@ export const AdminDashboard: React.FC = () => {
 
     setReviewItem(null);
     setReviewNotes('');
+    await loadAdminData();
+  };
+
+  // Review Field Project Report
+  const handleReviewProjectReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportReviewModal) return;
+
+    await PortalService.reviewProjectReport(
+      reportReviewModal.reportId,
+      'REVIEWED',
+      reportReviewNotes || 'Verified and approved by Executive Engineering Management.'
+    );
+
+    setReportReviewModal(null);
+    setReportReviewNotes('');
     await loadAdminData();
   };
 
@@ -186,10 +213,22 @@ export const AdminDashboard: React.FC = () => {
     await loadAdminData();
   };
 
-  // Provision Worker Handler
+  // Image Upload for Worker Provisioning
+  const handleWorkerPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewWorkerAvatar(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Provision Worker Handler (Admin sets password & photo)
   const handleProvisionWorker = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newWorkerName || !newWorkerEmail) return;
+    if (!newWorkerName || !newWorkerEmail || !newWorkerPassword) return;
 
     const empId = newWorkerEmpId || `RUM-EMP-${Math.floor(100 + Math.random() * 900)}`;
 
@@ -197,6 +236,8 @@ export const AdminDashboard: React.FC = () => {
       employeeId: empId,
       name: newWorkerName,
       email: newWorkerEmail,
+      password: newWorkerPassword,
+      avatarUrl: newWorkerAvatar,
       phone: newWorkerPhone || '+255 700 000 000',
       role: newWorkerRole,
       department: newWorkerDept,
@@ -208,7 +249,10 @@ export const AdminDashboard: React.FC = () => {
 
     setShowCreateWorkerModal(false);
     setNewWorkerName('');
+    setNewWorkerEmpId('');
     setNewWorkerEmail('');
+    setNewWorkerPassword('rumuli2026');
+    setNewWorkerAvatar('');
     setNewWorkerPhone('');
     setNewWorkerDesignation('');
     await loadAdminData();
@@ -234,14 +278,14 @@ export const AdminDashboard: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <ShieldCheck className="w-6 h-6 text-amber-brand" />
                 <span className="text-xs uppercase font-extrabold tracking-widest text-amber-brand">
-                  Executive Administration & Field Operations Oversight
+                  Executive Administration & Operations Command
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight mt-1">
                 Corporate Command Dashboard
               </h1>
               <p className="text-xs sm:text-sm text-gray-300 mt-1 max-w-2xl">
-                Authorized control center for provisioning worker credentials, assigning high-voltage & mining tasks, monitoring live field activity logs, and approving salary advances & field expenditures.
+                Authorized management center to provision staff accounts and assign passwords, dispatch high-voltage and mining field tasks, inspect submitted project field reports, and authorize salary advances & field expenditures.
               </p>
             </div>
 
@@ -253,7 +297,7 @@ export const AdminDashboard: React.FC = () => {
                 className="px-4 py-2 bg-amber-brand hover:bg-amber-hover text-[#10243A] text-xs font-bold rounded flex items-center space-x-1.5 transition-colors shadow-sm"
               >
                 <Plus className="w-4 h-4" />
-                <span>Assign New Field Task</span>
+                <span>Assign Field Task</span>
               </button>
               <button
                 type="button"
@@ -261,34 +305,42 @@ export const AdminDashboard: React.FC = () => {
                 className="px-4 py-2 bg-[#1C3E61] text-white hover:bg-[#234d77] border border-[#2B5480] text-xs font-bold rounded flex items-center space-x-1.5 transition-colors"
               >
                 <UserPlus className="w-4 h-4 text-amber-brand" />
-                <span>Provision Worker Account</span>
+                <span>+ Provision Worker Account</span>
               </button>
             </div>
           </div>
 
           {/* Quick Metrics Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-[#1C3E61]">
-            <div className="bg-[#16314D]/80 p-3.5 rounded border border-[#203D5C]">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6 pt-6 border-t border-[#1C3E61]">
+            <div className="bg-[#16314D]/80 p-3 rounded border border-[#203D5C]">
               <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Pending Approvals</span>
-              <div className="text-xl font-black text-amber-brand mt-0.5 flex items-center space-x-2">
+              <div className="text-lg font-black text-amber-brand mt-0.5 flex items-center space-x-1.5">
                 <span>{totalPending}</span>
-                {totalPending > 0 && <span className="text-[10px] font-semibold bg-red-500/20 text-red-300 px-1.5 py-0.2 rounded border border-red-500/30">Action Needed</span>}
+                {totalPending > 0 && <span className="text-[9px] font-semibold bg-red-500/20 text-red-300 px-1.5 py-0.2 rounded border border-red-500/30">Action Needed</span>}
               </div>
             </div>
 
-            <div className="bg-[#16314D]/80 p-3.5 rounded border border-[#203D5C]">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Registered Staff</span>
-              <div className="text-xl font-black text-white mt-0.5">{workers.length} Personnel</div>
+            <div className="bg-[#16314D]/80 p-3 rounded border border-[#203D5C]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Field Reports</span>
+              <div className="text-lg font-black text-amber-brand mt-0.5">
+                <span>{projectReports.length}</span>
+                {submittedReportsCount > 0 && <span className="ml-1 text-[9px] font-semibold text-emerald-400">({submittedReportsCount} New)</span>}
+              </div>
             </div>
 
-            <div className="bg-[#16314D]/80 p-3.5 rounded border border-[#203D5C]">
+            <div className="bg-[#16314D]/80 p-3 rounded border border-[#203D5C]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Staff Personnel</span>
+              <div className="text-lg font-black text-white mt-0.5">{workers.length} Members</div>
+            </div>
+
+            <div className="bg-[#16314D]/80 p-3 rounded border border-[#203D5C]">
               <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Active Tasks</span>
-              <div className="text-xl font-black text-blue-400 mt-0.5">{tasks.length} Assigned</div>
+              <div className="text-lg font-black text-blue-400 mt-0.5">{tasks.length} Assigned</div>
             </div>
 
-            <div className="bg-[#16314D]/80 p-3.5 rounded border border-[#203D5C]">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Activity Events</span>
-              <div className="text-xl font-black text-emerald-400 mt-0.5">{activityLogs.length} Audited</div>
+            <div className="bg-[#16314D]/80 p-3 rounded border border-[#203D5C]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Audit Events</span>
+              <div className="text-lg font-black text-emerald-400 mt-0.5">{activityLogs.length} Logged</div>
             </div>
           </div>
         </div>
@@ -311,6 +363,20 @@ export const AdminDashboard: React.FC = () => {
                 {totalPending}
               </span>
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('reports')}
+            className={`py-3.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-colors flex items-center space-x-2 whitespace-nowrap ${
+              activeTab === 'reports'
+                ? 'border-amber-brand text-[#10243A]'
+                : 'border-transparent text-gray-500 hover:text-[#10243A]'
+            }`}
+          >
+            <FileText className="w-4 h-4 text-amber-brand" />
+            <span>Project Field Reports</span>
+            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-100 text-amber-900 font-bold">{projectReports.length}</span>
           </button>
 
           <button
@@ -351,7 +417,7 @@ export const AdminDashboard: React.FC = () => {
             }`}
           >
             <History className="w-4 h-4 text-purple-600" />
-            <span>Live Activity Audit Trail</span>
+            <span>Activity Audit Trail</span>
           </button>
         </div>
 
@@ -362,21 +428,21 @@ export const AdminDashboard: React.FC = () => {
           <div className="space-y-6">
             
             {/* Filter Pills */}
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold uppercase text-gray-500">Filter Requests:</span>
+            <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+              <span className="text-xs font-bold uppercase text-gray-500 whitespace-nowrap">Filter Requests:</span>
               <button
                 type="button"
                 onClick={() => setApprovalCategory('all')}
-                className={`px-3 py-1 rounded text-xs font-semibold ${
+                className={`px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${
                   approvalCategory === 'all' ? 'bg-[#10243A] text-white' : 'bg-white border text-gray-600'
                 }`}
               >
-                All ({salaryRequests.length + expenses.length + materialRequests.length})
+                All Requests ({salaryRequests.length + expenses.length + materialRequests.length})
               </button>
               <button
                 type="button"
                 onClick={() => setApprovalCategory('salary')}
-                className={`px-3 py-1 rounded text-xs font-semibold ${
+                className={`px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${
                   approvalCategory === 'salary' ? 'bg-[#10243A] text-white' : 'bg-white border text-gray-600'
                 }`}
               >
@@ -385,7 +451,7 @@ export const AdminDashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setApprovalCategory('expenses')}
-                className={`px-3 py-1 rounded text-xs font-semibold ${
+                className={`px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${
                   approvalCategory === 'expenses' ? 'bg-[#10243A] text-white' : 'bg-white border text-gray-600'
                 }`}
               >
@@ -394,7 +460,7 @@ export const AdminDashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setApprovalCategory('materials')}
-                className={`px-3 py-1 rounded text-xs font-semibold ${
+                className={`px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${
                   approvalCategory === 'materials' ? 'bg-[#10243A] text-white' : 'bg-white border text-gray-600'
                 }`}
               >
@@ -410,7 +476,7 @@ export const AdminDashboard: React.FC = () => {
                     <DollarSign className="w-5 h-5 text-emerald-700" />
                     <div>
                       <h3 className="text-sm font-bold text-[#10243A]">Early Salary Payout Requests</h3>
-                      <p className="text-[11px] text-gray-500">Staff emergency advances pending executive review and payroll deduction authorization.</p>
+                      <p className="text-[11px] text-gray-500">Staff advance requests pending executive approval and payroll authorization.</p>
                     </div>
                   </div>
                   {pendingSalaryCount > 0 && (
@@ -422,7 +488,7 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="divide-y divide-gray-100">
                   {salaryRequests.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-gray-500">No salary advance requests recorded.</div>
+                    <div className="p-8 text-center text-xs text-gray-500">No salary advance requests recorded yet.</div>
                   ) : (
                     salaryRequests.map((req) => (
                       <div key={req.id} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50/80 transition-colors">
@@ -518,8 +584,8 @@ export const AdminDashboard: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <Receipt className="w-5 h-5 text-amber-700" />
                     <div>
-                      <h3 className="text-sm font-bold text-[#10243A]">Field Per Diem, Meals, Sleep & Receipt Claims</h3>
-                      <p className="text-[11px] text-gray-500">Expenditures filed by engineers dispatched to far projects (food, hotel/lodge, transport, fuel).</p>
+                      <h3 className="text-sm font-bold text-[#10243A]">Field Per Diem, Meals, Lodging & Expense Claims</h3>
+                      <p className="text-[11px] text-gray-500">Expenditures filed by engineers dispatched to far projects (food, sleep/hotel, fuel, equipment).</p>
                     </div>
                   </div>
                   {pendingExpensesCount > 0 && (
@@ -531,7 +597,7 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="divide-y divide-gray-100">
                   {expenses.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-gray-500">No expense claims filed.</div>
+                    <div className="p-8 text-center text-xs text-gray-500">No field expense claims recorded yet.</div>
                   ) : (
                     expenses.map((exp) => (
                       <div key={exp.id} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50/80 transition-colors">
@@ -563,13 +629,13 @@ export const AdminDashboard: React.FC = () => {
                           {/* Attached Receipt Link */}
                           {exp.receiptDataUrl && (
                             <div className="flex items-center space-x-2 pt-1">
-                              <span className="text-xs text-gray-500 font-semibold">Attached Voucher:</span>
+                              <span className="text-xs text-gray-500 font-semibold">Attached Receipt:</span>
                               <button
                                 type="button"
                                 onClick={() => setPreviewImage(exp.receiptDataUrl || null)}
-                                className="inline-flex items-center space-x-1 px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-semibold hover:bg-blue-100"
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-semibold hover:bg-blue-100 transition-colors"
                               >
-                                <Eye className="w-3 h-3" />
+                                <Eye className="w-3.5 h-3.5" />
                                 <span>Inspect Receipt ({exp.receiptFileName || 'Document'})</span>
                               </button>
                             </div>
@@ -645,7 +711,7 @@ export const AdminDashboard: React.FC = () => {
                     <Package className="w-5 h-5 text-blue-700" />
                     <div>
                       <h3 className="text-sm font-bold text-[#10243A]">Worksite Material Requisitions</h3>
-                      <p className="text-[11px] text-gray-500">Cables, switchgear, transformers, cement, and rigging items requested by field teams.</p>
+                      <p className="text-[11px] text-gray-500">Conductors, transformers, switchgear, rigging tackle, and spare parts requested for field sites.</p>
                     </div>
                   </div>
                   {pendingMaterialsCount > 0 && (
@@ -657,7 +723,7 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="divide-y divide-gray-100">
                   {materialRequests.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-gray-500">No material requisitions recorded.</div>
+                    <div className="p-8 text-center text-xs text-gray-500">No material requisitions recorded yet.</div>
                   ) : (
                     materialRequests.map((mat) => (
                       <div key={mat.id} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50/80 transition-colors">
@@ -750,11 +816,172 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {/* ============================================================ */}
-        {/* TAB 2: TASK ASSIGNMENTS BOARD */}
+        {/* TAB 2: FIELD PROJECT REPORTS REVIEW */}
+        {/* ============================================================ */}
+        {activeTab === 'reports' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-lg border border-gray-200 shadow-2xs">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-5 h-5 text-amber-brand" />
+                  <h2 className="text-base font-bold text-[#10243A]">Field Project Execution Reports</h2>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Inspect technical progress reports filed by engineers from live substations, mining plants, and transmission lines, including audited on-site photographic evidence.
+                </p>
+              </div>
+            </div>
+
+            {projectReports.length === 0 ? (
+              <div className="bg-white p-12 text-center rounded-lg border border-gray-200 shadow-2xs">
+                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <h3 className="text-sm font-bold text-gray-800">No Field Reports Submitted Yet</h3>
+                <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+                  When field engineers and technicians submit work progress and photo attachments from their dashboard, they will appear here for executive engineering review.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {projectReports.map((report) => (
+                  <div key={report.id} className="bg-white rounded-lg border border-gray-200 p-5 shadow-2xs space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-gray-100">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-mono text-xs font-bold text-amber-brand">{report.id}</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            report.status === 'REVIEWED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {report.status}
+                          </span>
+                        </div>
+                        <h3 className="text-base font-bold text-[#10243A] mt-1">{report.projectTitle}</h3>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-0.5">
+                          <span>Reported by: <strong>{report.workerName}</strong> ({report.employeeId})</span>
+                          <span>•</span>
+                          <span className="flex items-center space-x-1">
+                            <MapPin className="w-3.5 h-3.5 text-amber-brand" />
+                            <span>{report.siteLocation}</span>
+                          </span>
+                          <span>•</span>
+                          <span className="flex items-center space-x-1">
+                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                            <span>{report.reportDate}</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Review Action */}
+                      <div>
+                        {report.status === 'SUBMITTED' ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReportReviewModal({
+                                reportId: report.id,
+                                projectTitle: report.projectTitle,
+                                workerName: report.workerName
+                              });
+                              setReportReviewNotes('Technical progress verified against project drawings and bill of quantities. Work authorized to proceed.');
+                            }}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold flex items-center space-x-1.5 transition-colors shadow-2xs"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Review & Acknowledge</span>
+                          </button>
+                        ) : (
+                          <div className="text-right">
+                            <span className="inline-flex items-center space-x-1 text-xs font-bold text-emerald-700">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>Acknowledged by {report.reviewedBy}</span>
+                            </span>
+                            {report.reviewNotes && (
+                              <p className="text-[11px] text-gray-500 max-w-xs text-right mt-0.5 italic">
+                                "{report.reviewNotes}"
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Report Content Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                      <div className="space-y-3">
+                        <div className="p-3 bg-gray-50 rounded border border-gray-100">
+                          <strong className="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">
+                            Engineering Work Completed:
+                          </strong>
+                          <p className="text-gray-800 leading-relaxed whitespace-pre-line">{report.workCompleted}</p>
+                        </div>
+
+                        {report.technicalChallenges && (
+                          <div className="p-3 bg-red-50/50 rounded border border-red-100">
+                            <strong className="block text-[11px] uppercase tracking-wider text-red-700 mb-1">
+                              Technical Challenges & Site Blockers:
+                            </strong>
+                            <p className="text-red-900 leading-relaxed">{report.technicalChallenges}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-3">
+                        {report.weatherHseConditions && (
+                          <div className="p-3 bg-amber-50/40 rounded border border-amber-100">
+                            <strong className="block text-[11px] uppercase tracking-wider text-amber-800 mb-1">
+                              Weather & HSE Site Observations:
+                            </strong>
+                            <p className="text-gray-700 leading-relaxed">{report.weatherHseConditions}</p>
+                          </div>
+                        )}
+
+                        {report.equipmentUsed && (
+                          <div className="p-3 bg-blue-50/40 rounded border border-blue-100">
+                            <strong className="block text-[11px] uppercase tracking-wider text-blue-800 mb-1">
+                              Machinery & Heavy Plant Deployed:
+                            </strong>
+                            <p className="text-gray-700 leading-relaxed">{report.equipmentUsed}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Attached Site Photos */}
+                    {report.photos && report.photos.length > 0 && (
+                      <div className="pt-2 border-t border-gray-100">
+                        <div className="flex items-center space-x-1.5 text-xs font-bold text-gray-700 mb-2">
+                          <Camera className="w-4 h-4 text-amber-brand" />
+                          <span>Attached On-Site Evidence ({report.photos.length} Photos) — Click image to enlarge</span>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                          {report.photos.map((photo, pIdx) => (
+                            <button
+                              key={pIdx}
+                              type="button"
+                              onClick={() => setPreviewImage(photo.url)}
+                              className="group relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 focus:outline-hidden hover:ring-2 hover:ring-amber-brand transition-all"
+                            >
+                              <img src={photo.url} alt={photo.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Eye className="w-5 h-5 text-white" />
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 3: TASK ASSIGNMENTS BOARD */}
         {/* ============================================================ */}
         {activeTab === 'tasks' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-lg border border-gray-200 shadow-2xs">
               <div>
                 <h2 className="text-base font-bold text-[#10243A]">Field Task Assignment Board</h2>
                 <p className="text-xs text-gray-500">Assign electrical, mining, civil, and crane tasks directly to certified personnel.</p>
@@ -769,73 +996,83 @@ export const AdminDashboard: React.FC = () => {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {tasks.map((task) => (
-                <div key={task.id} className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className="text-[10px] font-mono font-bold text-gray-500">{task.id}</span>
-                      <div className="flex items-center space-x-1.5">
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-100 text-gray-800 border">
-                          {task.priority}
-                        </span>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          task.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' : 
-                          task.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {task.status}
-                        </span>
+            {tasks.length === 0 ? (
+              <div className="bg-white p-12 text-center rounded-lg border border-gray-200 shadow-2xs">
+                <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <h3 className="text-sm font-bold text-gray-800">No Tasks Assigned Yet</h3>
+                <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+                  Click the "Assign New Task" button above to assign operational tasks, dielectric breakdown tests, or mining infrastructure jobs to staff members.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {tasks.map((task) => (
+                  <div key={task.id} className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <span className="text-[10px] font-mono font-bold text-gray-500">{task.id}</span>
+                        <div className="flex items-center space-x-1.5">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-100 text-gray-800 border">
+                            {task.priority}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            task.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' : 
+                            task.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {task.status}
+                          </span>
+                        </div>
                       </div>
+
+                      <h3 className="font-bold text-sm text-[#10243A]">{task.title}</h3>
+                      <p className="text-xs text-gray-600 mt-2 leading-relaxed">{task.description}</p>
+
+                      <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5 text-xs text-gray-600">
+                        <div>
+                          <strong>Assigned Personnel:</strong> <span className="text-[#10243A] font-bold">{task.assignedToName}</span>
+                        </div>
+                        <div>
+                          <strong>Project:</strong> {task.project}
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="w-3.5 h-3.5 text-amber-brand" />
+                          <span>{task.location}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                          <span>Deadline: <strong>{task.deadline}</strong></span>
+                        </div>
+                      </div>
+
+                      {task.completionNotes && (
+                        <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-blue-900">
+                          <strong className="block text-[10px] uppercase font-bold text-blue-700">Worker Field Progress Note:</strong>
+                          {task.completionNotes}
+                        </div>
+                      )}
                     </div>
 
-                    <h3 className="font-bold text-sm text-[#10243A]">{task.title}</h3>
-                    <p className="text-xs text-gray-600 mt-2 leading-relaxed">{task.description}</p>
-
-                    <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5 text-xs text-gray-600">
-                      <div>
-                        <strong>Assigned Personnel:</strong> <span className="text-[#10243A] font-bold">{task.assignedToName}</span>
-                      </div>
-                      <div>
-                        <strong>Project:</strong> {task.project}
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="w-3.5 h-3.5 text-amber-brand" />
-                        <span>{task.location}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                        <span>Deadline: <strong>{task.deadline}</strong></span>
-                      </div>
+                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+                      <span>Created: {task.createdAt}</span>
+                      <span className="font-semibold text-gray-600">Updated: {task.updatedAt}</span>
                     </div>
-
-                    {task.completionNotes && (
-                      <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-blue-900">
-                        <strong className="block text-[10px] uppercase font-bold text-blue-700">Worker Field Progress Note:</strong>
-                        {task.completionNotes}
-                      </div>
-                    )}
                   </div>
-
-                  <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
-                    <span>Created: {task.createdAt}</span>
-                    <span className="font-semibold text-gray-600">Updated: {task.updatedAt}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* ============================================================ */}
-        {/* TAB 3: STAFF ROSTER & PROVISIONING */}
+        {/* TAB 4: STAFF ROSTER & PROVISIONING */}
         {/* ============================================================ */}
         {activeTab === 'workers' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-lg border border-gray-200 shadow-2xs">
               <div>
                 <h2 className="text-base font-bold text-[#10243A]">Corporate Personnel & Account Provisioning</h2>
                 <p className="text-xs text-gray-500">
-                  Only Administrators have authority to create worker accounts, configure base salaries, and manage operational roles.
+                  Only Administrators have authority to create worker accounts, configure login passwords, attach photos, and manage operational roles.
                 </p>
               </div>
               <button
@@ -856,6 +1093,7 @@ export const AdminDashboard: React.FC = () => {
                     <tr>
                       <th className="p-3 font-semibold">Staff Personnel</th>
                       <th className="p-3 font-semibold">Employee ID</th>
+                      <th className="p-3 font-semibold">Login Password</th>
                       <th className="p-3 font-semibold">Role</th>
                       <th className="p-3 font-semibold">Department & Designation</th>
                       <th className="p-3 font-semibold">Base Salary (TZS)</th>
@@ -868,7 +1106,7 @@ export const AdminDashboard: React.FC = () => {
                       <tr key={worker.uid} className="hover:bg-gray-50">
                         <td className="p-3">
                           <div className="flex items-center space-x-2.5">
-                            <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center font-bold text-amber-brand text-xs overflow-hidden flex-shrink-0">
+                            <div className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center font-bold text-amber-brand text-xs overflow-hidden flex-shrink-0">
                               {worker.avatarUrl ? (
                                 <img src={worker.avatarUrl} alt="" className="w-full h-full object-cover" />
                               ) : (
@@ -882,6 +1120,12 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                         </td>
                         <td className="p-3 font-mono font-bold text-gray-700">{worker.employeeId}</td>
+                        <td className="p-3">
+                          <div className="flex items-center space-x-1.5 font-mono text-xs bg-gray-100 px-2 py-0.5 rounded border border-gray-200 w-fit">
+                            <Key className="w-3 h-3 text-amber-brand" />
+                            <span className="font-bold text-gray-800">{worker.password || 'rumuli2026'}</span>
+                          </div>
+                        </td>
                         <td className="p-3">
                           {worker.role === 'ADMIN' ? (
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-300">
@@ -927,11 +1171,11 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {/* ============================================================ */}
-        {/* TAB 4: LIVE ACTIVITY AUDIT TRAIL */}
+        {/* TAB 5: LIVE ACTIVITY AUDIT TRAIL */}
         {/* ============================================================ */}
         {activeTab === 'audit' && (
           <div className="space-y-6">
-            <div className="bg-white p-5 rounded-lg border border-gray-200">
+            <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-2xs">
               <h2 className="text-base font-bold text-[#10243A]">Corporate Profile Activity Audit Trail</h2>
               <p className="text-xs text-gray-500">
                 Audited real-time telemetry recording worker sign-ins, field task updates, material requests, and administrative approvals.
@@ -985,18 +1229,24 @@ export const AdminDashboard: React.FC = () => {
             <form onSubmit={handleAssignTask} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Select Field Worker</label>
-                <select
-                  value={newTaskWorkerUid}
-                  onChange={(e) => setNewTaskWorkerUid(e.target.value)}
-                  required
-                  className="w-full border border-gray-300 rounded p-2 text-xs font-semibold"
-                >
-                  {workers.map((w) => (
-                    <option key={w.uid} value={w.uid}>
-                      {w.name} ({w.employeeId}) — {w.designation}
-                    </option>
-                  ))}
-                </select>
+                {workers.length === 0 ? (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded text-xs text-amber-900">
+                    No workers provisioned yet. Please provision a worker account first!
+                  </div>
+                ) : (
+                  <select
+                    value={newTaskWorkerUid}
+                    onChange={(e) => setNewTaskWorkerUid(e.target.value)}
+                    required
+                    className="w-full border border-gray-300 rounded p-2 text-xs font-semibold"
+                  >
+                    {workers.map((w) => (
+                      <option key={w.uid} value={w.uid}>
+                        {w.name} ({w.employeeId}) — {w.designation}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div>
@@ -1084,7 +1334,8 @@ export const AdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-[#10243A] text-white rounded text-xs font-bold hover:bg-[#16314D]"
+                  disabled={workers.length === 0}
+                  className="px-4 py-1.5 bg-[#10243A] text-white rounded text-xs font-bold hover:bg-[#16314D] disabled:opacity-50"
                 >
                   Confirm & Assign Task
                 </button>
@@ -1095,7 +1346,7 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 2: PROVISION WORKER ACCOUNT */}
+      {/* MODAL 2: PROVISION WORKER ACCOUNT (Admin sets password & photo) */}
       {/* ============================================================ */}
       {showCreateWorkerModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1111,6 +1362,34 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <form onSubmit={handleProvisionWorker} className="mt-4 space-y-4">
+              
+              {/* Photo Upload */}
+              <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="w-14 h-14 rounded-full bg-gray-200 border border-gray-300 overflow-hidden flex items-center justify-center flex-shrink-0">
+                  {newWorkerAvatar ? (
+                    <img src={newWorkerAvatar} alt="Worker Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <Users className="w-6 h-6 text-gray-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-gray-800 mb-1">
+                    Attach Staff Profile Photo
+                  </label>
+                  <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded text-xs font-semibold text-gray-700 hover:bg-gray-100 shadow-2xs">
+                    <ImageIcon className="w-3.5 h-3.5 text-amber-brand" />
+                    <span>Choose Photo File</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleWorkerPhotoUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-[10px] text-gray-500 mt-1">Worker can also update their photo later from the portal.</p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Staff Full Name</label>
@@ -1137,24 +1416,27 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Corporate Email</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Corporate Login Email</label>
                   <input
                     type="email"
                     value={newWorkerEmail}
                     onChange={(e) => setNewWorkerEmail(e.target.value)}
-                    placeholder="e.g. daudi.mwinyi@rumuli.co.tz"
+                    placeholder="e.g. worker@rumuli.com"
                     required
                     className="w-full border border-gray-300 rounded p-2 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <span className="text-amber-700 font-bold">Admin-Assigned Password</span>
+                  </label>
                   <input
                     type="text"
-                    value={newWorkerPhone}
-                    onChange={(e) => setNewWorkerPhone(e.target.value)}
-                    placeholder="+255 7XX XXX XXX"
-                    className="w-full border border-gray-300 rounded p-2 text-xs"
+                    value={newWorkerPassword}
+                    onChange={(e) => setNewWorkerPassword(e.target.value)}
+                    placeholder="e.g. rumuli2026"
+                    required
+                    className="w-full border border-amber-300 bg-amber-50/50 rounded p-2 text-xs font-mono font-bold"
                   />
                 </div>
               </div>
@@ -1172,14 +1454,13 @@ export const AdminDashboard: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Monthly Base Salary (TZS)</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
                   <input
-                    type="number"
-                    step="50000"
-                    value={newWorkerSalary}
-                    onChange={(e) => setNewWorkerSalary(Number(e.target.value))}
-                    required
-                    className="w-full border border-gray-300 rounded p-2 text-xs font-bold"
+                    type="text"
+                    value={newWorkerPhone}
+                    onChange={(e) => setNewWorkerPhone(e.target.value)}
+                    placeholder="+255 7XX XXX XXX"
+                    className="w-full border border-gray-300 rounded p-2 text-xs"
                   />
                 </div>
               </div>
@@ -1200,20 +1481,32 @@ export const AdminDashboard: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Designation / Title</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Monthly Base Salary (TZS)</label>
                   <input
-                    type="text"
-                    value={newWorkerDesignation}
-                    onChange={(e) => setNewWorkerDesignation(e.target.value)}
-                    placeholder="e.g. Certified Live-Line Lineman"
+                    type="number"
+                    step="50000"
+                    value={newWorkerSalary}
+                    onChange={(e) => setNewWorkerSalary(Number(e.target.value))}
                     required
-                    className="w-full border border-gray-300 rounded p-2 text-xs"
+                    className="w-full border border-gray-300 rounded p-2 text-xs font-bold"
                   />
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Designation / Title</label>
+                <input
+                  type="text"
+                  value={newWorkerDesignation}
+                  onChange={(e) => setNewWorkerDesignation(e.target.value)}
+                  placeholder="e.g. Senior Live-Line Substation Engineer"
+                  required
+                  className="w-full border border-gray-300 rounded p-2 text-xs"
+                />
+              </div>
+
               <div className="p-3 bg-amber-50 rounded text-xs text-amber-900 border border-amber-200">
-                Staff member will be immediately enrolled into the Rumuli Corporate registry and can sign into the staff portal with their email and the default initial access password.
+                The worker can immediately sign into the staff portal with their email and the password you have designated above.
               </div>
 
               <div className="flex justify-end space-x-2 pt-2">
@@ -1301,20 +1594,77 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 4: RECEIPT INSPECTION LIGHTBOX */}
+      {/* MODAL 4: PROJECT REPORT REVIEW MODAL */}
+      {/* ============================================================ */}
+      {reportReviewModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <h3 className="text-sm font-bold text-[#10243A]">
+                Acknowledge & Review Field Report
+              </h3>
+              <button onClick={() => setReportReviewModal(null)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleReviewProjectReport} className="mt-4 space-y-4">
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded text-xs space-y-1">
+                <div><strong>Project:</strong> {reportReviewModal.projectTitle}</div>
+                <div><strong>Submitted By:</strong> {reportReviewModal.workerName}</div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Engineering Management Feedback / Review Notes
+                </label>
+                <textarea
+                  rows={3}
+                  value={reportReviewNotes}
+                  onChange={(e) => setReportReviewNotes(e.target.value)}
+                  placeholder="Provide review feedback or instructions..."
+                  required
+                  className="w-full border border-gray-300 rounded p-2 text-xs"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setReportReviewModal(null)}
+                  className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold"
+                >
+                  Confirm Review
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL 5: PHOTO / RECEIPT INSPECTION LIGHTBOX */}
       {/* ============================================================ */}
       {previewImage && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-xl w-full p-4 relative">
-            <button
-              onClick={() => setPreviewImage(null)}
-              className="absolute right-3 top-3 bg-gray-100 hover:bg-gray-200 p-1 rounded-full text-gray-700"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <h4 className="text-sm font-bold text-[#10243A] mb-3">Audited Receipt Document</h4>
-            <div className="max-h-[70vh] overflow-auto flex items-center justify-center bg-gray-100 rounded p-2">
-              <img src={previewImage} alt="Receipt Preview" className="max-w-full max-h-[65vh] object-contain rounded" />
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full p-4 relative shadow-2xl">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+              <h4 className="text-sm font-bold text-[#10243A]">Audited Document / Field Photo Evidence</h4>
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full text-gray-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="max-h-[70vh] overflow-auto flex items-center justify-center bg-gray-950 rounded-lg p-2">
+              <img src={previewImage} alt="Audited Preview" className="max-w-full max-h-[65vh] object-contain rounded" />
             </div>
           </div>
         </div>
@@ -1323,4 +1673,3 @@ export const AdminDashboard: React.FC = () => {
     </div>
   );
 };
-

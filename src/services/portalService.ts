@@ -8,13 +8,11 @@ import {
   updateDoc, 
   query, 
   where, 
-  orderBy, 
-  addDoc 
+  orderBy 
 } from 'firebase/firestore';
 import { 
   signInWithEmailAndPassword, 
-  signOut, 
-  createUserWithEmailAndPassword 
+  signOut 
 } from 'firebase/auth';
 
 import {
@@ -23,6 +21,7 @@ import {
   EarlySalaryRequest,
   MaterialRequest,
   FieldExpense,
+  ProjectReport,
   ActivityLog,
   RequestStatus,
   TaskStatus
@@ -34,10 +33,13 @@ import {
   INITIAL_SALARY_REQUESTS,
   INITIAL_MATERIAL_REQUESTS,
   INITIAL_FIELD_EXPENSES,
+  INITIAL_PROJECT_REPORTS,
   INITIAL_ACTIVITY_LOGS
 } from '../lib/mockData';
 
-// Storage keys for offline/fallback mode
+const DB_VERSION_KEY = 'rumuli_portal_v2_clean';
+
+// Storage keys
 const STORAGE_KEYS = {
   CURRENT_USER: 'rumuli_portal_current_user',
   USERS: 'rumuli_portal_users',
@@ -45,10 +47,25 @@ const STORAGE_KEYS = {
   SALARY: 'rumuli_portal_salary',
   MATERIALS: 'rumuli_portal_materials',
   EXPENSES: 'rumuli_portal_expenses',
+  REPORTS: 'rumuli_portal_reports',
   LOGS: 'rumuli_portal_logs'
 };
 
-// Helper to get or initialize local storage items
+// Clean upgrade check to wipe legacy sample demo data
+if (typeof window !== 'undefined') {
+  if (localStorage.getItem(DB_VERSION_KEY) !== 'active') {
+    localStorage.removeItem(STORAGE_KEYS.USERS);
+    localStorage.removeItem(STORAGE_KEYS.TASKS);
+    localStorage.removeItem(STORAGE_KEYS.SALARY);
+    localStorage.removeItem(STORAGE_KEYS.MATERIALS);
+    localStorage.removeItem(STORAGE_KEYS.EXPENSES);
+    localStorage.removeItem(STORAGE_KEYS.REPORTS);
+    localStorage.removeItem(STORAGE_KEYS.LOGS);
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+    localStorage.setItem(DB_VERSION_KEY, 'active');
+  }
+}
+
 function getLocalItem<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -70,7 +87,6 @@ function setLocalItem<T>(key: string, data: T): void {
   }
 }
 
-// Format timestamp helper
 function nowTimestamp(): string {
   const d = new Date();
   return d.toISOString().replace('T', ' ').substring(0, 16);
@@ -80,34 +96,63 @@ export const PortalService = {
   // ==========================================
   // AUTHENTICATION
   // ==========================================
-  async login(email: string, password: string): Promise<UserProfile> {
+  async login(email: string, pass: string): Promise<UserProfile> {
     const normalizedEmail = email.trim().toLowerCase();
+    const cleanPassword = pass.trim();
 
-    if (isFirebaseConfigured && auth && db) {
+    // Check Master Admin requested: admin@rumuli.com / rumuli2026
+    if (normalizedEmail === 'admin@rumuli.com' && cleanPassword === 'rumuli2026') {
+      const adminProfile = INITIAL_USERS[0];
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(adminProfile));
+      
+      // Update in users registry
+      const users = getLocalItem<UserProfile[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+      if (!users.some(u => u.email === adminProfile.email)) {
+        users.unshift(adminProfile);
+        setLocalItem(STORAGE_KEYS.USERS, users);
+      }
+
+      await this.logActivity(adminProfile.uid, adminProfile.name, 'Admin Authenticated', 'Master Administrator logged into Corporate Command Center.', 'AUTH');
+      return adminProfile;
+    }
+
+    // Try Firestore if configured
+    if (isFirebaseConfigured && db) {
       try {
-        const cred = await signInWithEmailAndPassword(auth, normalizedEmail, password);
-        const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
-        if (userDoc.exists()) {
-          const profile = userDoc.data() as UserProfile;
-          localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(profile));
-          await this.logActivity(profile.uid, profile.name, 'Staff Signed In', `Authenticated into Rumuli Corporate portal via Firebase.`, 'AUTH');
-          return profile;
+        const q = query(collection(db, 'users'), where('email', '==', normalizedEmail));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          const userDoc = snap.docs[0].data() as UserProfile;
+          if (userDoc.password && userDoc.password !== cleanPassword) {
+            throw new Error('Invalid credentials: The password provided does not match this staff account.');
+          }
+          if (userDoc.status === 'INACTIVE') {
+            throw new Error('Access Suspended: This staff account is currently inactive.');
+          }
+          localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userDoc));
+          await this.logActivity(userDoc.uid, userDoc.name, 'Staff Signed In', `Authenticated via Firebase Cloud as ${userDoc.designation}.`, 'AUTH');
+          return userDoc;
         }
-      } catch (err) {
-        console.warn('Firebase login failed, falling back to corporate registry check:', err);
+      } catch (err: any) {
+        if (err.message && err.message.includes('Invalid credentials')) throw err;
+        console.warn('Firestore login check note:', err);
       }
     }
 
-    // Local / Offline fallback
+    // Local Registry check (for workers created by Admin)
     const users = getLocalItem<UserProfile[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
     const found = users.find(u => u.email.toLowerCase() === normalizedEmail);
 
     if (!found) {
-      throw new Error('Access Denied: No staff account registered with this corporate email. Please contact Administration.');
+      throw new Error('Access Denied: No staff account registered with this email. Only Administration can provision worker accounts.');
+    }
+
+    if (found.password && found.password !== cleanPassword) {
+      throw new Error('Invalid Password: The password does not match the one configured by Administration.');
     }
 
     if (found.status === 'INACTIVE') {
-      throw new Error('Access Suspended: This staff account is currently inactive. Contact HR or Managing Director.');
+      throw new Error('Access Suspended: This staff account has been set to inactive.');
     }
 
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(found));
@@ -127,20 +172,44 @@ export const PortalService = {
   async logout(): Promise<void> {
     const user = this.getCurrentUser();
     if (user) {
-      await this.logActivity(user.uid, user.name, 'Staff Signed Out', `Logged out of Rumuli Corporate portal.`, 'AUTH');
+      await this.logActivity(user.uid, user.name, 'Staff Signed Out', 'Signed out of session.', 'AUTH');
     }
     if (isFirebaseConfigured && auth) {
       try {
         await signOut(auth);
-      } catch {
-        // ignore
-      }
+      } catch {}
     }
     localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
   },
 
   // ==========================================
-  // USER / WORKER MANAGEMENT (ADMIN ONLY)
+  // PROFILE IMAGE ATTACHMENT / UPDATE
+  // ==========================================
+  async updateUserProfileImage(uid: string, avatarUrl: string): Promise<void> {
+    const current = this.getCurrentUser();
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'users', uid), { avatarUrl });
+      } catch (err) {
+        console.warn('Firestore avatar update fallback:', err);
+      }
+    }
+
+    const users = getLocalItem<UserProfile[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+    const updated = users.map(u => u.uid === uid ? { ...u, avatarUrl } : u);
+    setLocalItem(STORAGE_KEYS.USERS, updated);
+
+    if (current && current.uid === uid) {
+      current.avatarUrl = avatarUrl;
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(current));
+    }
+
+    await this.logActivity(uid, current?.name || 'Staff Member', 'Updated Profile Photo', 'New identification photo attached to profile.', 'AUTH');
+  },
+
+  // ==========================================
+  // WORKER MANAGEMENT (ADMIN ONLY - CREATES PASSWORD & ACCOUNT)
   // ==========================================
   async getWorkers(): Promise<UserProfile[]> {
     if (isFirebaseConfigured && db) {
@@ -157,10 +226,10 @@ export const PortalService = {
     return getLocalItem<UserProfile[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
   },
 
-  async createWorker(newWorker: Omit<UserProfile, 'uid'>, initialPassword = 'RumuliWorker@2026'): Promise<UserProfile> {
+  async createWorker(newWorker: Omit<UserProfile, 'uid'>): Promise<UserProfile> {
     const admin = this.getCurrentUser();
     if (!admin || admin.role !== 'ADMIN') {
-      throw new Error('Unauthorized: Only Administrators can provision worker accounts.');
+      throw new Error('Unauthorized: Only Administrators have authority to create staff accounts.');
     }
 
     const uid = 'worker-' + Date.now();
@@ -169,9 +238,8 @@ export const PortalService = {
       uid
     };
 
-    if (isFirebaseConfigured && db && auth) {
+    if (isFirebaseConfigured && db) {
       try {
-        // If secondary auth app is needed or in production, Firebase admin SDK or client creation
         await setDoc(doc(db, 'users', uid), profile);
       } catch (err) {
         console.warn('Firestore createWorker fallback:', err);
@@ -186,7 +254,7 @@ export const PortalService = {
       admin.uid, 
       admin.name, 
       'Admin Provisioned New Worker Account', 
-      `Registered ${profile.name} (${profile.employeeId}) as ${profile.designation} in ${profile.department}.`,
+      `Registered ${profile.name} (${profile.employeeId}) with assigned password. Department: ${profile.department}.`,
       'ADMIN'
     );
 
@@ -196,7 +264,7 @@ export const PortalService = {
   async updateWorkerStatus(uid: string, status: UserProfile['status']): Promise<void> {
     const admin = this.getCurrentUser();
     if (!admin || admin.role !== 'ADMIN') {
-      throw new Error('Unauthorized: Only Administrators can modify worker statuses.');
+      throw new Error('Unauthorized');
     }
 
     if (isFirebaseConfigured && db) {
@@ -211,7 +279,116 @@ export const PortalService = {
     const updated = users.map(u => u.uid === uid ? { ...u, status } : u);
     setLocalItem(STORAGE_KEYS.USERS, updated);
 
-    await this.logActivity(admin.uid, admin.name, 'Admin Updated Worker Status', `Changed worker status of ID ${uid} to ${status}.`, 'ADMIN');
+    await this.logActivity(admin.uid, admin.name, 'Admin Updated Worker Status', `Changed status of worker ID ${uid} to ${status}.`, 'ADMIN');
+  },
+
+  // ==========================================
+  // PROJECT REPORTS SUBMISSION & REVIEW
+  // ==========================================
+  async getProjectReports(workerUid?: string): Promise<ProjectReport[]> {
+    if (isFirebaseConfigured && db) {
+      try {
+        let q;
+        if (workerUid) {
+          q = query(collection(db, 'project_reports'), where('workerUid', '==', workerUid));
+        } else {
+          q = query(collection(db, 'project_reports'));
+        }
+        const snap = await getDocs(q);
+        const list: ProjectReport[] = [];
+        snap.forEach(d => list.push({ ...d.data(), id: d.id } as ProjectReport));
+        if (list.length > 0) return list;
+      } catch (err) {
+        console.warn('Firestore getProjectReports fallback:', err);
+      }
+    }
+
+    const reports = getLocalItem<ProjectReport[]>(STORAGE_KEYS.REPORTS, INITIAL_PROJECT_REPORTS);
+    if (workerUid) {
+      return reports.filter(r => r.workerUid === workerUid);
+    }
+    return reports;
+  },
+
+  async submitProjectReport(data: Omit<ProjectReport, 'id' | 'workerUid' | 'workerName' | 'employeeId' | 'status' | 'submittedAt'>): Promise<ProjectReport> {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('Must be signed in to submit a project report.');
+
+    const id = 'REP-' + Date.now().toString().slice(-6);
+    const report: ProjectReport = {
+      ...data,
+      id,
+      workerUid: user.uid,
+      workerName: user.name,
+      employeeId: user.employeeId,
+      status: 'SUBMITTED',
+      submittedAt: nowTimestamp()
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'project_reports', id), report);
+      } catch (err) {
+        console.warn('Firestore submitProjectReport fallback:', err);
+      }
+    }
+
+    const reports = getLocalItem<ProjectReport[]>(STORAGE_KEYS.REPORTS, INITIAL_PROJECT_REPORTS);
+    reports.unshift(report);
+    setLocalItem(STORAGE_KEYS.REPORTS, reports);
+
+    await this.logActivity(
+      user.uid,
+      user.name,
+      'Project Field Report Submitted',
+      `Filed site progress report for "${report.projectTitle}" at ${report.siteLocation} with ${report.photos.length} site photos attached.`,
+      'REPORT'
+    );
+
+    return report;
+  },
+
+  async reviewProjectReport(reportId: string, status: ProjectReport['status'], reviewNotes: string): Promise<void> {
+    const admin = this.getCurrentUser();
+    if (!admin || admin.role !== 'ADMIN') throw new Error('Unauthorized');
+
+    const reviewedAt = nowTimestamp();
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'project_reports', reportId), {
+          status,
+          reviewNotes,
+          reviewedBy: admin.name,
+          reviewedAt
+        });
+      } catch (err) {
+        console.warn('Firestore reviewProjectReport fallback:', err);
+      }
+    }
+
+    const reports = getLocalItem<ProjectReport[]>(STORAGE_KEYS.REPORTS, INITIAL_PROJECT_REPORTS);
+    const updated = reports.map(r => {
+      if (r.id === reportId) {
+        return {
+          ...r,
+          status,
+          reviewNotes,
+          reviewedBy: admin.name,
+          reviewedAt
+        };
+      }
+      return r;
+    });
+    setLocalItem(STORAGE_KEYS.REPORTS, updated);
+
+    await this.logActivity(
+      admin.uid,
+      admin.name,
+      `Project Report ${status}`,
+      `Report ${reportId} marked as ${status} with feedback: "${reviewNotes}"`,
+      'REPORT'
+    );
   },
 
   // ==========================================
@@ -244,9 +421,7 @@ export const PortalService = {
 
   async createTask(taskData: Omit<WorkerTask, 'id' | 'createdAt' | 'updatedAt'>): Promise<WorkerTask> {
     const admin = this.getCurrentUser();
-    if (!admin || admin.role !== 'ADMIN') {
-      throw new Error('Unauthorized: Only Administrators can assign tasks.');
-    }
+    if (!admin || admin.role !== 'ADMIN') throw new Error('Unauthorized');
 
     const id = 'TSK-' + Date.now().toString().slice(-6);
     const task: WorkerTask = {
@@ -315,14 +490,14 @@ export const PortalService = {
         user.uid,
         user.name,
         `Task Status Updated to ${status}`,
-        `Task ID ${taskId} status changed by ${user.name}.`,
+        `Task ${taskId} status updated by ${user.name}.`,
         'TASK'
       );
     }
   },
 
   // ==========================================
-  // EARLY SALARY PAYOUT REQUESTS
+  // EARLY SALARY ADVANCE REQUESTS
   // ==========================================
   async getSalaryRequests(workerUid?: string): Promise<EarlySalaryRequest[]> {
     if (isFirebaseConfigured && db) {
@@ -388,7 +563,7 @@ export const PortalService = {
       user.uid,
       user.name,
       'Early Salary Advance Requested',
-      `Requested advance of ${data.requestedAmount.toLocaleString()} TZS. Reason: ${data.reason}`,
+      `Requested advance of ${data.requestedAmount.toLocaleString()} TZS.`,
       'SALARY'
     );
 
@@ -433,7 +608,7 @@ export const PortalService = {
       admin.uid,
       admin.name,
       `Salary Advance ${status}`,
-      `Salary request ID ${requestId} was ${status.toLowerCase()} by Admin. Notes: ${reviewNotes}`,
+      `Salary request ${requestId} marked as ${status}.`,
       'SALARY'
     );
   },
@@ -497,7 +672,7 @@ export const PortalService = {
       user.uid,
       user.name,
       'Site Material Requisition Submitted',
-      `Requested ${req.items.length} items for project "${req.projectName}" at ${req.siteLocation}.`,
+      `Requested ${req.items.length} items for "${req.projectName}" at ${req.siteLocation}.`,
       'MATERIALS'
     );
 
@@ -542,13 +717,13 @@ export const PortalService = {
       admin.uid,
       admin.name,
       `Material Requisition ${status}`,
-      `Material request ${requestId} was marked as ${status} by Admin.`,
+      `Material request ${requestId} marked as ${status}.`,
       'MATERIALS'
     );
   },
 
   // ==========================================
-  // FIELD EXPENSES & PER DIEM (Food, Lodging, Transport, Receipts)
+  // FIELD EXPENSES & PER DIEM (Food, Sleep, Transport, Receipts)
   // ==========================================
   async getFieldExpenses(workerUid?: string): Promise<FieldExpense[]> {
     if (isFirebaseConfigured && db) {
@@ -605,8 +780,8 @@ export const PortalService = {
     await this.logActivity(
       user.uid,
       user.name,
-      'Field Expense / Per Diem Claim Submitted',
-      `Submitted ${exp.category} claim for ${exp.amount.toLocaleString()} TZS at ${exp.destination}${exp.receiptFileName ? ' with receipt (' + exp.receiptFileName + ')' : ''}.`,
+      'Field Expense Claim Submitted',
+      `Submitted ${exp.category} for ${exp.amount.toLocaleString()} TZS at ${exp.destination}.`,
       'EXPENSE'
     );
 
@@ -651,7 +826,7 @@ export const PortalService = {
       admin.uid,
       admin.name,
       `Field Expense ${status}`,
-      `Expense claim ${expenseId} was ${status} by Admin. Notes: ${reviewNotes}`,
+      `Expense claim ${expenseId} marked as ${status}.`,
       'EXPENSE'
     );
   },
@@ -703,9 +878,7 @@ export const PortalService = {
 
     const logs = getLocalItem<ActivityLog[]>(STORAGE_KEYS.LOGS, INITIAL_ACTIVITY_LOGS);
     logs.unshift(log);
-    // Keep last 150 entries
     if (logs.length > 150) logs.pop();
     setLocalItem(STORAGE_KEYS.LOGS, logs);
   }
 };
-

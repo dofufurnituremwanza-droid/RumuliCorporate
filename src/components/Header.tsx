@@ -89,17 +89,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
             })}
           </nav>
 
-          {/* Consultation Button & Staff Portal */}
-          <div className="flex items-center space-x-2 sm:space-x-2.5">
-            <Link
-              to="/portal"
-              className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold rounded-sm text-amber-brand bg-white/5 hover:bg-white/10 border border-amber-brand/40 hover:border-amber-brand transition-all duration-150 backdrop-blur-md"
-              title="Staff Operations & Worker Portal"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-brand flex-shrink-0" />
-              <span className="font-bold">Staff Portal</span>
-            </Link>
-
+          {/* Consultation Button & Mobile Toggle */}
+          <div className="flex items-center space-x-3">
             <Link
               to="/contact"
               onClick={onOpenConsultation}
@@ -171,15 +162,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
                 );
               })}
 
-              <div className="pt-4 space-y-2">
-                <Link
-                  to="/portal"
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 text-xs uppercase tracking-wider font-bold rounded bg-[#16314D] text-amber-brand border border-amber-brand/40 hover:bg-[#1D3E61] transition-colors"
-                >
-                  <ShieldCheck className="w-4 h-4 text-amber-brand" />
-                  <span>Staff Operations Portal</span>
-                </Link>
-
+              <div className="pt-6">
                 <Link
                   to="/contact"
                   className="w-full flex items-center justify-center px-4 py-3 text-xs uppercase tracking-wider font-bold rounded bg-[#E3A129] text-[#10243A] hover:bg-[#C88B1E] transition-colors shadow"

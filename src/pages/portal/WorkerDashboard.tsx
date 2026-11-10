@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { PortalHeader } from '../../components/portal/PortalHeader';
 import { PortalService } from '../../services/portalService';
@@ -7,13 +7,13 @@ import {
   EarlySalaryRequest, 
   MaterialRequest, 
   FieldExpense, 
+  ProjectReport,
   TaskStatus,
   ExpenseCategory
 } from '../../types/portal';
 import { 
   CheckCircle2, 
   Clock, 
-  AlertTriangle, 
   DollarSign, 
   Package, 
   Receipt, 
@@ -22,24 +22,28 @@ import {
   FileText, 
   Calendar, 
   MapPin, 
-  FileCheck, 
   X, 
   Upload, 
   Eye, 
-  Sparkles,
-  Info,
-  Building,
-  User,
-  Coffee,
-  Bed,
-  Car
+  Building, 
+  Coffee, 
+  Bed, 
+  Car,
+  Camera,
+  ShieldCheck,
+  AlertTriangle,
+  HardHat,
+  ClipboardCheck,
+  Image as ImageIcon
 } from 'lucide-react';
 
 export const WorkerDashboard: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, refreshCurrentUser } = useAuth();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const [activeTab, setActiveTab] = useState<'tasks' | 'salary' | 'materials' | 'expenses' | 'profile'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'reports' | 'salary' | 'materials' | 'expenses' | 'safety'>('tasks');
   const [tasks, setTasks] = useState<WorkerTask[]>([]);
+  const [reports, setReports] = useState<ProjectReport[]>([]);
   const [salaryRequests, setSalaryRequests] = useState<EarlySalaryRequest[]>([]);
   const [materialRequests, setMaterialRequests] = useState<MaterialRequest[]>([]);
   const [expenses, setExpenses] = useState<FieldExpense[]>([]);
@@ -50,11 +54,24 @@ export const WorkerDashboard: React.FC = () => {
   const [taskStatusChoice, setTaskStatusChoice] = useState<TaskStatus>('IN_PROGRESS');
   const [taskNotes, setTaskNotes] = useState('');
 
+  // Project Report Form State
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [repProject, setRepProject] = useState('');
+  const [repLocation, setRepLocation] = useState('');
+  const [repDate, setRepDate] = useState(new Date().toISOString().split('T')[0]);
+  const [repWorkCompleted, setRepWorkCompleted] = useState('');
+  const [repChallenges, setRepChallenges] = useState('');
+  const [repWeatherHse, setRepWeatherHse] = useState('Clear weather, zero safety incidents recorded. All linemen in full PPE.');
+  const [repEquipment, setRepEquipment] = useState('');
+  const [repPhotos, setRepPhotos] = useState<Array<{ name: string; url: string }>>([]);
+
+  // Early Salary Request Form State
   const [showSalaryModal, setShowSalaryModal] = useState(false);
   const [salaryAmount, setSalaryAmount] = useState<number>(300000);
   const [salaryReason, setSalaryReason] = useState('');
   const [repaymentPlan, setRepaymentPlan] = useState('Deduct 100% from upcoming monthly payslip');
 
+  // Material Request Form State
   const [showMaterialModal, setShowMaterialModal] = useState(false);
   const [matProject, setMatProject] = useState('');
   const [matLocation, setMatLocation] = useState('');
@@ -64,6 +81,7 @@ export const WorkerDashboard: React.FC = () => {
     { item: '', quantity: 1, unit: 'Pieces', purpose: '' }
   ]);
 
+  // Field Expense / Per Diem Form State
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [expCategory, setExpCategory] = useState<ExpenseCategory>('FOOD_PER_DIEM');
   const [expDestination, setExpDestination] = useState('');
@@ -73,20 +91,28 @@ export const WorkerDashboard: React.FC = () => {
   const [expReceiptFile, setExpReceiptFile] = useState<string | null>(null);
   const [expReceiptName, setExpReceiptName] = useState<string | null>(null);
 
+  // Safety Checklist State (Field feature fitting Rumuli's live-line & mining work)
+  const [safetyPpe, setSafetyPpe] = useState(false);
+  const [safetyPermit, setSafetyPermit] = useState(false);
+  const [safetyEarth, setSafetyEarth] = useState(false);
+  const [safetySigned, setSafetySigned] = useState(false);
+
+  // Lightbox preview
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Load data for this worker
   const loadWorkerData = async () => {
     if (!currentUser) return;
     setLoading(true);
     try {
-      const [t, s, m, e] = await Promise.all([
+      const [t, rep, s, m, e] = await Promise.all([
         PortalService.getTasks(currentUser.uid),
+        PortalService.getProjectReports(currentUser.uid),
         PortalService.getSalaryRequests(currentUser.uid),
         PortalService.getMaterialRequests(currentUser.uid),
         PortalService.getFieldExpenses(currentUser.uid)
       ]);
       setTasks(t);
+      setReports(rep);
       setSalaryRequests(s);
       setMaterialRequests(m);
       setExpenses(e);
@@ -101,7 +127,21 @@ export const WorkerDashboard: React.FC = () => {
 
   if (!currentUser) return null;
 
-  // Handler: Update Task Status
+  // Handle Profile Avatar Upload
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && currentUser) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const dataUrl = reader.result as string;
+        await PortalService.updateUserProfileImage(currentUser.uid, dataUrl);
+        await refreshCurrentUser();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle Task Update
   const handleUpdateTaskStatus = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!showTaskUpdateModal) return;
@@ -111,7 +151,47 @@ export const WorkerDashboard: React.FC = () => {
     await loadWorkerData();
   };
 
-  // Handler: Submit Salary Request
+  // Handle Project Report Photos
+  const handleReportPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setRepPhotos(prev => [...prev, { name: file.name, url: reader.result as string }]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  // Submit Project Report
+  const handleSubmitReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!repProject || !repWorkCompleted) return;
+
+    await PortalService.submitProjectReport({
+      projectTitle: repProject,
+      siteLocation: repLocation || 'Active Worksite',
+      reportDate: repDate,
+      workCompleted: repWorkCompleted,
+      technicalChallenges: repChallenges,
+      weatherHseConditions: repWeatherHse,
+      equipmentUsed: repEquipment,
+      photos: repPhotos
+    });
+
+    setShowReportModal(false);
+    setRepProject('');
+    setRepLocation('');
+    setRepWorkCompleted('');
+    setRepChallenges('');
+    setRepEquipment('');
+    setRepPhotos([]);
+    await loadWorkerData();
+  };
+
+  // Submit Salary Advance
   const handleSubmitSalary = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!salaryAmount || !salaryReason) return;
@@ -125,7 +205,7 @@ export const WorkerDashboard: React.FC = () => {
     await loadWorkerData();
   };
 
-  // Handler: Add item to Material request
+  // Handle Materials
   const handleAddMaterialItem = () => {
     setMatItems([...matItems, { item: '', quantity: 1, unit: 'Units', purpose: '' }]);
   };
@@ -140,15 +220,14 @@ export const WorkerDashboard: React.FC = () => {
     setMatItems(updated);
   };
 
-  // Handler: Submit Material Request
   const handleSubmitMaterials = async (e: React.FormEvent) => {
     e.preventDefault();
     const validItems = matItems.filter(i => i.item.trim().length > 0);
     if (validItems.length === 0) return;
 
     await PortalService.requestMaterials({
-      projectName: matProject || 'General Field Infrastructure',
-      siteLocation: matLocation || 'Field Site',
+      projectName: matProject || 'Field Worksite',
+      siteLocation: matLocation || 'Site',
       urgency: matUrgency,
       items: validItems,
       justification: matJustification
@@ -162,7 +241,7 @@ export const WorkerDashboard: React.FC = () => {
     await loadWorkerData();
   };
 
-  // Handler: Handle Receipt Upload (Converts to Data URL)
+  // Submit Field Expense / Receipts
   const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -175,7 +254,6 @@ export const WorkerDashboard: React.FC = () => {
     }
   };
 
-  // Handler: Submit Field Expense / Per Diem
   const handleSubmitExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!expAmount || !expDestination) return;
@@ -198,17 +276,18 @@ export const WorkerDashboard: React.FC = () => {
     await loadWorkerData();
   };
 
-  // Status Badge Colors
   const renderStatusBadge = (status: string) => {
     switch (status) {
       case 'APPROVED':
       case 'COMPLETED':
       case 'DISBURSED':
+      case 'REVIEWED':
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">APPROVED</span>;
       case 'IN_PROGRESS':
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">IN PROGRESS</span>;
       case 'REJECTED':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-300">REJECTED</span>;
+      case 'ACTION_REQUIRED':
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-300">ACTION REQ / REJECTED</span>;
       default:
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">PENDING REVIEW</span>;
     }
@@ -218,22 +297,42 @@ export const WorkerDashboard: React.FC = () => {
     <div className="min-h-screen bg-[#F4F5F6] flex flex-col">
       <PortalHeader />
 
-      {/* Main Container */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Worker Welcome Banner */}
+        {/* Profile Card Banner */}
         <div className="bg-[#10243A] text-white rounded-lg p-6 sm:p-8 shadow-md mb-8 relative overflow-hidden">
           <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-amber-500/10 to-transparent pointer-events-none" />
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-500/50 flex items-center justify-center text-amber-brand text-xl font-bold overflow-hidden shadow-inner flex-shrink-0">
-                {currentUser.avatarUrl ? (
-                  <img src={currentUser.avatarUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  currentUser.name.charAt(0)
-                )}
+              
+              {/* Profile Image with upload trigger */}
+              <div className="relative group flex-shrink-0">
+                <input
+                  type="file"
+                  ref={avatarInputRef}
+                  accept="image/*"
+                  onChange={handleAvatarFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  title="Click to change your profile picture"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-amber-500/20 border-2 border-amber-500/50 flex items-center justify-center text-amber-brand text-2xl font-bold overflow-hidden shadow-inner relative group-hover:border-amber-brand transition-all"
+                >
+                  {currentUser.avatarUrl ? (
+                    <img src={currentUser.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{currentUser.name.charAt(0)}</span>
+                  )}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-[10px] font-semibold text-white">
+                    <Camera className="w-4 h-4 mb-0.5" />
+                    <span>Upload</span>
+                  </div>
+                </button>
               </div>
+
               <div>
                 <div className="flex items-center space-x-2">
                   <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{currentUser.name}</h1>
@@ -247,9 +346,9 @@ export const WorkerDashboard: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 mt-2 font-mono">
                   <span>ID: <strong className="text-white">{currentUser.employeeId}</strong></span>
                   <span>•</span>
-                  <span>Contact: {currentUser.phone}</span>
+                  <span>Phone: {currentUser.phone}</span>
                   <span>•</span>
-                  <span>Monthly Base: <strong className="text-amber-brand">{currentUser.baseSalary.toLocaleString()} TZS</strong></span>
+                  <span>Base Salary: <strong className="text-amber-brand">{currentUser.baseSalary.toLocaleString()} TZS</strong></span>
                 </div>
               </div>
             </div>
@@ -258,19 +357,19 @@ export const WorkerDashboard: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setShowExpenseModal(true)}
-                className="px-3.5 py-2 text-xs font-semibold rounded bg-amber-brand text-[#10243A] hover:bg-amber-hover transition-colors flex items-center space-x-1.5 shadow-sm"
+                onClick={() => setShowReportModal(true)}
+                className="px-3.5 py-2 text-xs font-semibold rounded bg-amber-brand text-[#10243A] hover:bg-amber-hover transition-colors flex items-center space-x-1.5 shadow-sm font-bold"
               >
-                <Receipt className="w-3.5 h-3.5" />
-                <span>Claim Field Per Diem / Receipts</span>
+                <ClipboardCheck className="w-3.5 h-3.5" />
+                <span>Submit Project Report</span>
               </button>
               <button
                 type="button"
-                onClick={() => setShowSalaryModal(true)}
-                className="px-3.5 py-2 text-xs font-semibold rounded bg-[#1C3E61] text-white hover:bg-[#234d77] border border-[#2B5480] transition-colors flex items-center space-x-1.5"
+                onClick={() => setShowExpenseModal(true)}
+                className="px-3 py-2 text-xs font-semibold rounded bg-[#1C3E61] text-white hover:bg-[#234d77] border border-[#2B5480] transition-colors flex items-center space-x-1.5"
               >
-                <DollarSign className="w-3.5 h-3.5 text-amber-brand" />
-                <span>Request Early Salary</span>
+                <Receipt className="w-3.5 h-3.5 text-amber-brand" />
+                <span>Claim Per Diem / Receipts</span>
               </button>
             </div>
           </div>
@@ -282,9 +381,7 @@ export const WorkerDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('tasks')}
             className={`py-3.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-colors flex items-center space-x-2 whitespace-nowrap ${
-              activeTab === 'tasks'
-                ? 'border-amber-brand text-[#10243A]'
-                : 'border-transparent text-gray-500 hover:text-[#10243A]'
+              activeTab === 'tasks' ? 'border-amber-brand text-[#10243A]' : 'border-transparent text-gray-500 hover:text-[#10243A]'
             }`}
           >
             <Briefcase className="w-4 h-4 text-amber-brand" />
@@ -294,14 +391,24 @@ export const WorkerDashboard: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setActiveTab('salary')}
+            onClick={() => setActiveTab('reports')}
             className={`py-3.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-colors flex items-center space-x-2 whitespace-nowrap ${
-              activeTab === 'salary'
-                ? 'border-amber-brand text-[#10243A]'
-                : 'border-transparent text-gray-500 hover:text-[#10243A]'
+              activeTab === 'reports' ? 'border-amber-brand text-[#10243A]' : 'border-transparent text-gray-500 hover:text-[#10243A]'
             }`}
           >
-            <DollarSign className="w-4 h-4 text-emerald-600" />
+            <ClipboardCheck className="w-4 h-4 text-emerald-600" />
+            <span>Project Field Reports</span>
+            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-gray-100 font-bold">{reports.length}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('salary')}
+            className={`py-3.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-colors flex items-center space-x-2 whitespace-nowrap ${
+              activeTab === 'salary' ? 'border-amber-brand text-[#10243A]' : 'border-transparent text-gray-500 hover:text-[#10243A]'
+            }`}
+          >
+            <DollarSign className="w-4 h-4 text-emerald-700" />
             <span>Early Salary Advances</span>
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-gray-100 font-bold">{salaryRequests.length}</span>
           </button>
@@ -310,9 +417,7 @@ export const WorkerDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('materials')}
             className={`py-3.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-colors flex items-center space-x-2 whitespace-nowrap ${
-              activeTab === 'materials'
-                ? 'border-amber-brand text-[#10243A]'
-                : 'border-transparent text-gray-500 hover:text-[#10243A]'
+              activeTab === 'materials' ? 'border-amber-brand text-[#10243A]' : 'border-transparent text-gray-500 hover:text-[#10243A]'
             }`}
           >
             <Package className="w-4 h-4 text-blue-600" />
@@ -324,14 +429,23 @@ export const WorkerDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('expenses')}
             className={`py-3.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-colors flex items-center space-x-2 whitespace-nowrap ${
-              activeTab === 'expenses'
-                ? 'border-amber-brand text-[#10243A]'
-                : 'border-transparent text-gray-500 hover:text-[#10243A]'
+              activeTab === 'expenses' ? 'border-amber-brand text-[#10243A]' : 'border-transparent text-gray-500 hover:text-[#10243A]'
             }`}
           >
             <Receipt className="w-4 h-4 text-amber-600" />
             <span>Field Expenses & Per Diem</span>
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-gray-100 font-bold">{expenses.length}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('safety')}
+            className={`py-3.5 px-4 font-bold text-xs uppercase tracking-wider border-b-2 transition-colors flex items-center space-x-2 whitespace-nowrap ${
+              activeTab === 'safety' ? 'border-amber-brand text-[#10243A]' : 'border-transparent text-gray-500 hover:text-[#10243A]'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4 text-red-600" />
+            <span>HSE Daily Safety Sign-Off</span>
           </button>
         </div>
 
@@ -343,15 +457,15 @@ export const WorkerDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold text-[#10243A]">Work Assignments & Field Deployments</h2>
-                <p className="text-xs text-gray-500">Tasks officially assigned to you by Rumuli Corporate Project Administration.</p>
+                <p className="text-xs text-gray-500">Tasks officially assigned to you by Administration.</p>
               </div>
             </div>
 
             {tasks.length === 0 ? (
               <div className="bg-white p-12 text-center rounded-lg border border-gray-200">
                 <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-2" />
-                <h3 className="text-sm font-bold text-gray-800">All Assignments Complete</h3>
-                <p className="text-xs text-gray-500 mt-1">You currently have no pending tasks assigned by Administration.</p>
+                <h3 className="text-sm font-bold text-gray-800">No Active Tasks Assigned</h3>
+                <p className="text-xs text-gray-500 mt-1">When Corporate Administration assigns you a field project, it will appear here.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -360,15 +474,7 @@ export const WorkerDashboard: React.FC = () => {
                     <div>
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <span className="text-[10px] font-mono font-bold text-gray-500">{task.id}</span>
-                        <div className="flex items-center space-x-1.5">
-                          {task.priority === 'CRITICAL' && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-800 border border-red-300">CRITICAL</span>
-                          )}
-                          {task.priority === 'HIGH' && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">HIGH PRIORITY</span>
-                          )}
-                          {renderStatusBadge(task.status)}
-                        </div>
+                        {renderStatusBadge(task.status)}
                       </div>
 
                       <h3 className="font-bold text-sm text-[#10243A] leading-snug">{task.title}</h3>
@@ -391,7 +497,7 @@ export const WorkerDashboard: React.FC = () => {
 
                       {task.completionNotes && (
                         <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-blue-900">
-                          <strong className="block text-[10px] uppercase font-bold text-blue-700">Field Progress Note:</strong>
+                          <strong className="block text-[10px] uppercase font-bold text-blue-700">Progress Note:</strong>
                           {task.completionNotes}
                         </div>
                       )}
@@ -419,7 +525,112 @@ export const WorkerDashboard: React.FC = () => {
         )}
 
         {/* ============================================================ */}
-        {/* TAB 2: EARLY SALARY ADVANCES */}
+        {/* TAB 2: PROJECT FIELD REPORTS (NEW REQUESTED FEATURE) */}
+        {/* ============================================================ */}
+        {activeTab === 'reports' && (
+          <div className="space-y-6">
+            <div className="bg-white p-5 rounded-lg border border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-bold text-[#10243A]">Project Field Execution Reports</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Submit daily or milestone engineering progress reports for assigned substation, live-line, mining, or crane operations with on-site photos.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(true)}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded flex items-center space-x-1.5 transition-colors shadow-sm flex-shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Submit Field Report</span>
+              </button>
+            </div>
+
+            {reports.length === 0 ? (
+              <div className="bg-white p-12 text-center rounded-lg border border-gray-200">
+                <ClipboardCheck className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <h3 className="text-sm font-bold text-gray-800">No Reports Submitted Yet</h3>
+                <p className="text-xs text-gray-500 mt-1">Submit your first field site report using the button above.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {reports.map((rep) => (
+                  <div key={rep.id} className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <span className="text-[10px] font-mono font-bold text-gray-500">{rep.id}</span>
+                        {renderStatusBadge(rep.status)}
+                      </div>
+
+                      <h3 className="font-bold text-sm text-[#10243A]">{rep.projectTitle}</h3>
+                      <div className="flex items-center space-x-3 text-xs text-gray-500 mt-0.5">
+                        <span className="flex items-center space-x-1">
+                          <MapPin className="w-3 h-3 text-amber-brand" />
+                          <span>{rep.siteLocation}</span>
+                        </span>
+                        <span>•</span>
+                        <span>Date: <strong>{rep.reportDate}</strong></span>
+                      </div>
+
+                      <div className="mt-3 p-3 bg-gray-50 border border-gray-100 rounded text-xs space-y-2">
+                        <div>
+                          <strong className="text-gray-700 block">Work Completed:</strong>
+                          <p className="text-gray-600 whitespace-pre-line mt-0.5">{rep.workCompleted}</p>
+                        </div>
+                        {rep.technicalChallenges && (
+                          <div>
+                            <strong className="text-amber-800 block">Site Challenges / Blockers:</strong>
+                            <p className="text-gray-600 mt-0.5">{rep.technicalChallenges}</p>
+                          </div>
+                        )}
+                        {rep.weatherHseConditions && (
+                          <div>
+                            <strong className="text-emerald-800 block">HSE & Weather Conditions:</strong>
+                            <p className="text-gray-600 mt-0.5">{rep.weatherHseConditions}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Photo Attachments */}
+                      {rep.photos && rep.photos.length > 0 && (
+                        <div className="mt-3">
+                          <span className="text-[10px] font-bold uppercase text-gray-500 block mb-1">
+                            Attached Site Evidence Photos ({rep.photos.length}):
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {rep.photos.map((ph, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => setPreviewImage(ph.url)}
+                                className="w-16 h-16 rounded border border-gray-200 overflow-hidden relative group hover:opacity-90"
+                              >
+                                <img src={ph.url} alt="" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center">
+                                  <Eye className="w-4 h-4 text-white" />
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
+                      <span>Submitted: {rep.submittedAt}</span>
+                      {rep.reviewNotes && (
+                        <span className="text-blue-700 font-bold">Admin Feedback: {rep.reviewNotes}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 3: EARLY SALARY ADVANCES */}
         {/* ============================================================ */}
         {activeTab === 'salary' && (
           <div className="space-y-6">
@@ -427,7 +638,7 @@ export const WorkerDashboard: React.FC = () => {
               <div>
                 <h2 className="text-base font-bold text-[#10243A]">Early Salary Advance Portal</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Emergency financial welfare program. Eligible staff can request an advance of up to 50% of monthly base salary ({Math.floor(currentUser.baseSalary * 0.5).toLocaleString()} TZS max).
+                  Emergency financial welfare. Eligible for an advance of up to 50% of monthly base salary ({Math.floor(currentUser.baseSalary * 0.5).toLocaleString()} TZS).
                 </p>
               </div>
               <button
@@ -440,13 +651,7 @@ export const WorkerDashboard: React.FC = () => {
               </button>
             </div>
 
-            {/* Salary Requests Table */}
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-2xs">
-              <div className="px-5 py-3 border-b border-gray-100 bg-[#F9FAFB] flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-gray-600">Your Salary Advance History</span>
-                <span className="text-xs text-gray-500">{salaryRequests.length} records</span>
-              </div>
-
               {salaryRequests.length === 0 ? (
                 <div className="p-8 text-center text-xs text-gray-500">No early salary requests filed.</div>
               ) : (
@@ -459,22 +664,18 @@ export const WorkerDashboard: React.FC = () => {
                         <th className="p-3 font-semibold">Reason</th>
                         <th className="p-3 font-semibold">Repayment Plan</th>
                         <th className="p-3 font-semibold">Status</th>
-                        <th className="p-3 font-semibold">Admin Feedback</th>
+                        <th className="p-3 font-semibold">Feedback</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {salaryRequests.map((req) => (
                         <tr key={req.id} className="hover:bg-gray-50">
                           <td className="p-3 font-mono font-bold text-[#10243A]">{req.id}</td>
-                          <td className="p-3 font-bold text-emerald-700">
-                            {req.requestedAmount.toLocaleString()} TZS
-                          </td>
+                          <td className="p-3 font-bold text-emerald-700">{req.requestedAmount.toLocaleString()} TZS</td>
                           <td className="p-3 text-gray-700 max-w-xs">{req.reason}</td>
                           <td className="p-3 text-gray-600">{req.repaymentTerms}</td>
                           <td className="p-3">{renderStatusBadge(req.status)}</td>
-                          <td className="p-3 text-gray-500 italic">
-                            {req.reviewNotes ? req.reviewNotes : (req.status === 'PENDING' ? 'Awaiting Admin review' : 'No notes')}
-                          </td>
+                          <td className="p-3 text-gray-500 italic">{req.reviewNotes || 'Under Review'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -486,7 +687,7 @@ export const WorkerDashboard: React.FC = () => {
         )}
 
         {/* ============================================================ */}
-        {/* TAB 3: MATERIAL REQUISITIONS */}
+        {/* TAB 4: MATERIAL REQUISITIONS */}
         {/* ============================================================ */}
         {activeTab === 'materials' && (
           <div className="space-y-6">
@@ -494,7 +695,7 @@ export const WorkerDashboard: React.FC = () => {
               <div>
                 <h2 className="text-base font-bold text-[#10243A]">Worksite Material Requisition</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Request electrical conductors, transformers, switchgear, insulators, cement, cables, and tools for active field sites.
+                  Request electrical conductors, transformers, switchgear, insulators, cement, and rigging cables.
                 </p>
               </div>
               <button
@@ -507,66 +708,59 @@ export const WorkerDashboard: React.FC = () => {
               </button>
             </div>
 
-            {/* Requisitions List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {materialRequests.map((req) => (
-                <div key={req.id} className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className="text-[10px] font-mono font-bold text-gray-500">{req.id}</span>
-                      <div className="flex items-center space-x-1.5">
-                        {req.urgency === 'URGENT' && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-800">URGENT</span>
-                        )}
+            {materialRequests.length === 0 ? (
+              <div className="bg-white p-8 text-center text-xs text-gray-500 rounded border">No material requests submitted.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {materialRequests.map((req) => (
+                  <div key={req.id} className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <span className="text-[10px] font-mono font-bold text-gray-500">{req.id}</span>
                         {renderStatusBadge(req.status)}
                       </div>
+
+                      <h3 className="font-bold text-sm text-[#10243A]">{req.projectName}</h3>
+                      <div className="text-xs text-gray-500 flex items-center space-x-1 mt-0.5">
+                        <MapPin className="w-3 h-3 text-amber-brand" />
+                        <span>{req.siteLocation}</span>
+                      </div>
+
+                      <div className="mt-3 p-3 bg-gray-50 border border-gray-100 rounded">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Items:</span>
+                        <ul className="space-y-1 text-xs">
+                          {req.items.map((item, idx) => (
+                            <li key={idx} className="flex items-center justify-between">
+                              <span className="text-gray-800 font-medium">• {item.item}</span>
+                              <span className="font-mono text-gray-600">{item.quantity} {item.unit}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-2 italic">"{req.justification}"</p>
                     </div>
 
-                    <h3 className="font-bold text-sm text-[#10243A]">{req.projectName}</h3>
-                    <div className="text-xs text-gray-500 flex items-center space-x-1 mt-0.5">
-                      <MapPin className="w-3 h-3 text-amber-brand" />
-                      <span>{req.siteLocation}</span>
+                    <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
+                      <span>Filed: {req.requestedAt}</span>
+                      {req.reviewNotes && <span className="text-blue-700 font-semibold">{req.reviewNotes}</span>}
                     </div>
-
-                    <div className="mt-3 p-3 bg-gray-50 border border-gray-100 rounded">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">
-                        Requested Material Items:
-                      </span>
-                      <ul className="space-y-1 text-xs">
-                        {req.items.map((item, idx) => (
-                          <li key={idx} className="flex items-center justify-between">
-                            <span className="text-gray-800 font-medium">• {item.item}</span>
-                            <span className="font-mono text-gray-600">{item.quantity} {item.unit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <p className="text-xs text-gray-600 mt-2 italic">"{req.justification}"</p>
                   </div>
-
-                  <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
-                    <span>Filed: {req.requestedAt}</span>
-                    {req.reviewNotes && (
-                      <span className="text-blue-700 font-semibold">{req.reviewNotes}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* ============================================================ */}
-        {/* TAB 4: FIELD PER DIEM & EXPENSE RECEIPTS */}
+        {/* TAB 5: FIELD PER DIEM & EXPENSES */}
         {/* ============================================================ */}
         {activeTab === 'expenses' && (
           <div className="space-y-6">
             <div className="bg-white p-5 rounded-lg border border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-base font-bold text-[#10243A]">Field Per Diem, Meals, Sleep & Receipts</h2>
+                <h2 className="text-base font-bold text-[#10243A]">Field Allowances, Per Diem & Receipts</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  When deployed on far assignments (e.g. Geita mine site, rural electrification, substations), claim daily food allowances, lodging/hotel receipts, transit tickets, and fuel.
+                  When deployed on far assignments, claim daily food subsistence, lodge/sleep invoices, transit fares, and fuel.
                 </p>
               </div>
               <button
@@ -579,69 +773,136 @@ export const WorkerDashboard: React.FC = () => {
               </button>
             </div>
 
-            {/* Expense Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {expenses.map((exp) => (
-                <div key={exp.id} className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className="text-[10px] font-mono font-bold text-gray-500">{exp.id}</span>
-                      {renderStatusBadge(exp.status)}
-                    </div>
-
-                    <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-brand mb-1">
-                      {exp.category === 'FOOD_PER_DIEM' && <Coffee className="w-4 h-4" />}
-                      {exp.category === 'ACCOMMODATION_SLEEP' && <Bed className="w-4 h-4" />}
-                      {exp.category === 'TRAVEL_TRANSPORT' && <Car className="w-4 h-4" />}
-                      <span>{exp.category.replace(/_/g, ' ')}</span>
-                    </div>
-
-                    <div className="text-lg font-black text-[#10243A]">
-                      {exp.amount.toLocaleString()} TZS
-                    </div>
-
-                    <p className="text-xs text-gray-600 mt-1 leading-relaxed">{exp.description}</p>
-
-                    <div className="mt-3 text-xs text-gray-500 space-y-1">
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="w-3.5 h-3.5 text-amber-brand flex-shrink-0" />
-                        <span className="truncate">{exp.destination}</span>
+            {expenses.length === 0 ? (
+              <div className="bg-white p-8 text-center text-xs text-gray-500 rounded border">No field expenses recorded.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {expenses.map((exp) => (
+                  <div key={exp.id} className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <span className="text-[10px] font-mono font-bold text-gray-500">{exp.id}</span>
+                        {renderStatusBadge(exp.status)}
                       </div>
-                      {exp.daysCount && (
-                        <div className="flex items-center space-x-1 text-gray-600">
-                          <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                          <span>Duration: <strong>{exp.daysCount} Days on-site</strong></span>
+
+                      <div className="text-lg font-black text-[#10243A]">{exp.amount.toLocaleString()} TZS</div>
+                      <p className="text-xs text-gray-600 mt-1">{exp.description}</p>
+
+                      <div className="mt-3 text-xs text-gray-500 space-y-1">
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="w-3.5 h-3.5 text-amber-brand" />
+                          <span>{exp.destination}</span>
+                        </div>
+                        {exp.daysCount && (
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                            <span>Duration: {exp.daysCount} Days on site</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {exp.receiptDataUrl && (
+                        <div className="mt-3 p-2 bg-gray-50 border border-gray-200 rounded flex items-center justify-between">
+                          <span className="text-xs text-gray-700 truncate">{exp.receiptFileName || 'Attached Receipt'}</span>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewImage(exp.receiptDataUrl || null)}
+                            className="px-2 py-0.5 text-xs text-blue-700 font-semibold"
+                          >
+                            Inspect
+                          </button>
                         </div>
                       )}
                     </div>
 
-                    {/* Receipt Attachment Thumbnail */}
-                    {exp.receiptDataUrl && (
-                      <div className="mt-3 p-2 bg-gray-50 border border-gray-200 rounded flex items-center justify-between">
-                        <div className="flex items-center space-x-2 truncate">
-                          <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                          <span className="text-xs text-gray-700 truncate">{exp.receiptFileName || 'Receipt Attachment'}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setPreviewImage(exp.receiptDataUrl || null)}
-                          className="px-2 py-1 text-[11px] font-semibold text-blue-700 hover:text-blue-900 flex items-center space-x-1"
-                        >
-                          <Eye className="w-3 h-3" />
-                          <span>Inspect</span>
-                        </button>
+                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+                      <span>{exp.submittedAt}</span>
+                      {exp.reviewNotes && <span className="text-emerald-700 font-bold">{exp.reviewNotes}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 6: HSE ZERO-HARM DAILY SAFETY SIGN-OFF */}
+        {/* ============================================================ */}
+        {activeTab === 'safety' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-2xs">
+              <div className="flex items-center space-x-3 mb-4 pb-4 border-b border-gray-100">
+                <ShieldCheck className="w-8 h-8 text-red-600" />
+                <div>
+                  <h2 className="text-base font-bold text-[#10243A]">Daily Live-Line & Worksite Safety Sign-Off</h2>
+                  <p className="text-xs text-gray-500">
+                    Mandatory Zero-Harm protocol before commencing high-voltage live line maintenance, crane lifts, or mineral leaching works.
+                  </p>
+                </div>
+              </div>
+
+              {safetySigned ? (
+                <div className="p-6 bg-emerald-50 border border-emerald-200 rounded text-center">
+                  <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto mb-2" />
+                  <h3 className="text-sm font-bold text-emerald-900">Safety Verification Complete</h3>
+                  <p className="text-xs text-emerald-700 mt-1">
+                    You have digitally signed your Daily Toolbox & PPE Verification for today. Work authorized under Zero-Harm standards.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-w-xl">
+                  <div className="space-y-2 text-xs">
+                    <label className="flex items-start space-x-2.5 p-3 bg-gray-50 rounded border cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={safetyPpe}
+                        onChange={(e) => setSafetyPpe(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-emerald-600 rounded"
+                      />
+                      <div>
+                        <strong className="text-gray-900 block">Personal Protective Equipment (PPE) Inspected:</strong>
+                        <span className="text-gray-600">Arc-flash safety shield, dielectric insulating gloves, safety boots, and fall-arrest harness verified.</span>
                       </div>
-                    )}
+                    </label>
+
+                    <label className="flex items-start space-x-2.5 p-3 bg-gray-50 rounded border cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={safetyPermit}
+                        onChange={(e) => setSafetyPermit(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-emerald-600 rounded"
+                      />
+                      <div>
+                        <strong className="text-gray-900 block">Permit to Work & Isolation Verified:</strong>
+                        <span className="text-gray-600">Clearance received from site supervisor and client utility engineers before work commencement.</span>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start space-x-2.5 p-3 bg-gray-50 rounded border cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={safetyEarth}
+                        onChange={(e) => setSafetyEarth(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-emerald-600 rounded"
+                      />
+                      <div>
+                        <strong className="text-gray-900 block">Earthing & Grounding Tested:</strong>
+                        <span className="text-gray-600">Portable earth leads clamped and circuit confirmed dead or live-line distance protocols strictly observed.</span>
+                      </div>
+                    </label>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
-                    <span>{exp.submittedAt}</span>
-                    {exp.reviewNotes && (
-                      <span className="text-emerald-700 font-semibold">{exp.reviewNotes}</span>
-                    )}
-                  </div>
+                  <button
+                    type="button"
+                    disabled={!safetyPpe || !safetyPermit || !safetyEarth}
+                    onClick={() => setSafetySigned(true)}
+                    className="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded text-xs transition-colors disabled:opacity-40"
+                  >
+                    Commit & Sign Daily Safety Verification
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
@@ -649,7 +910,146 @@ export const WorkerDashboard: React.FC = () => {
       </main>
 
       {/* ============================================================ */}
-      {/* MODAL 1: UPDATE TASK STATUS */}
+      {/* MODAL: SUBMIT PROJECT REPORT */}
+      {/* ============================================================ */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center space-x-2">
+                <ClipboardCheck className="w-5 h-5 text-emerald-600" />
+                <h3 className="text-sm font-bold text-[#10243A]">Submit Project Field Execution Report</h3>
+              </div>
+              <button onClick={() => setShowReportModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitReport} className="mt-4 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Project Name</label>
+                  <input
+                    type="text"
+                    value={repProject}
+                    onChange={(e) => setRepProject(e.target.value)}
+                    placeholder="e.g. Geita Gold Leaching Plant"
+                    required
+                    className="w-full border border-gray-300 rounded p-2 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Site Location</label>
+                  <input
+                    type="text"
+                    value={repLocation}
+                    onChange={(e) => setRepLocation(e.target.value)}
+                    placeholder="e.g. Geita Site Block B"
+                    required
+                    className="w-full border border-gray-300 rounded p-2 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Report Date</label>
+                <input
+                  type="date"
+                  value={repDate}
+                  onChange={(e) => setRepDate(e.target.value)}
+                  required
+                  className="w-full border border-gray-300 rounded p-2 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Work Completed & Milestones Achieved Today</label>
+                <textarea
+                  rows={3}
+                  value={repWorkCompleted}
+                  onChange={(e) => setRepWorkCompleted(e.target.value)}
+                  placeholder="Detail operations conducted today (e.g. transformer bushings torqued, cable terminations completed, 400m line strung, vat concrete pour inspected)..."
+                  required
+                  className="w-full border border-gray-300 rounded p-2 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Site Challenges / Blockers Encountered</label>
+                <textarea
+                  rows={2}
+                  value={repChallenges}
+                  onChange={(e) => setRepChallenges(e.target.value)}
+                  placeholder="e.g. Soil condition required extra anchor depth; heavy rain delayed crane lift by 2 hours..."
+                  className="w-full border border-gray-300 rounded p-2 text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Weather & HSE Status</label>
+                  <input
+                    type="text"
+                    value={repWeatherHse}
+                    onChange={(e) => setRepWeatherHse(e.target.value)}
+                    placeholder="e.g. Clear, zero incidents"
+                    className="w-full border border-gray-300 rounded p-2 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Machinery & Tools Utilized</label>
+                  <input
+                    type="text"
+                    value={repEquipment}
+                    onChange={(e) => setRepEquipment(e.target.value)}
+                    placeholder="e.g. UNIC 4260 crane, Megger tester"
+                    className="w-full border border-gray-300 rounded p-2 text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Attach Site Photos */}
+              <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded">
+                <label className="block text-xs font-bold text-emerald-900 mb-1 flex items-center space-x-1.5">
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Attach Site Execution Photos (Multiple Allowed)</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleReportPhotoUpload}
+                  className="w-full text-xs text-gray-700 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#10243A] file:text-white"
+                />
+                {repPhotos.length > 0 && (
+                  <div className="mt-2 text-xs text-emerald-800 font-semibold">
+                    Attached {repPhotos.length} site photos ready for upload.
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 bg-emerald-600 text-white rounded text-xs font-bold hover:bg-emerald-700"
+                >
+                  Submit Field Report
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: UPDATE TASK STATUS */}
       {/* ============================================================ */}
       {showTaskUpdateModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -682,13 +1082,13 @@ export const WorkerDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Field Completion Notes & Observations</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Field Progress Notes</label>
                 <textarea
                   rows={3}
                   value={taskNotes}
                   onChange={(e) => setTaskNotes(e.target.value)}
-                  placeholder="e.g. Conducted transformer oil breakdown test at 65kV. Phase terminations connected and ready for energization."
-                  className="w-full border border-gray-300 rounded p-2 text-xs text-[#10243A]"
+                  placeholder="e.g. Conducted transformer oil test. Ready for energization."
+                  className="w-full border border-gray-300 rounded p-2 text-xs"
                 />
               </div>
 
@@ -713,7 +1113,7 @@ export const WorkerDashboard: React.FC = () => {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 2: EARLY SALARY REQUEST */}
+      {/* MODAL: EARLY SALARY REQUEST */}
       {/* ============================================================ */}
       {showSalaryModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -755,26 +1155,26 @@ export const WorkerDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Reason for Emergency Early Payout</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Reason for Early Payout</label>
                 <textarea
                   rows={2}
                   value={salaryReason}
                   onChange={(e) => setSalaryReason(e.target.value)}
-                  placeholder="e.g. Urgent family hospitalization bills / Children school semester fee deadline"
+                  placeholder="e.g. Urgent family hospitalization deposit..."
                   required
-                  className="w-full border border-gray-300 rounded p-2 text-xs text-[#10243A]"
+                  className="w-full border border-gray-300 rounded p-2 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Repayment Deduction Terms</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Repayment Terms</label>
                 <select
                   value={repaymentPlan}
                   onChange={(e) => setRepaymentPlan(e.target.value)}
-                  className="w-full border border-gray-300 rounded p-2 text-xs text-[#10243A]"
+                  className="w-full border border-gray-300 rounded p-2 text-xs"
                 >
-                  <option value="Deduct 100% from upcoming monthly payslip">Deduct 100% from upcoming end-of-month payslip</option>
-                  <option value="Split 50% across next two consecutive payroll cycles">Split deduction across next 2 monthly payroll cycles</option>
+                  <option value="Deduct 100% from upcoming monthly payslip">Deduct 100% from upcoming monthly payslip</option>
+                  <option value="Split 50% across next two payroll cycles">Split 50% across next two payroll cycles</option>
                 </select>
               </div>
 
@@ -790,7 +1190,7 @@ export const WorkerDashboard: React.FC = () => {
                   type="submit"
                   className="px-4 py-1.5 bg-emerald-600 text-white rounded text-xs font-bold hover:bg-emerald-700"
                 >
-                  Submit for Admin Approval
+                  Submit for Approval
                 </button>
               </div>
             </form>
@@ -799,7 +1199,7 @@ export const WorkerDashboard: React.FC = () => {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 3: MATERIAL REQUISITION */}
+      {/* MODAL: MATERIAL REQUISITION */}
       {/* ============================================================ */}
       {showMaterialModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -833,7 +1233,7 @@ export const WorkerDashboard: React.FC = () => {
                     type="text"
                     value={matLocation}
                     onChange={(e) => setMatLocation(e.target.value)}
-                    placeholder="e.g. Lake Zone Block B"
+                    placeholder="e.g. Block B"
                     required
                     className="w-full border border-gray-300 rounded p-2 text-xs"
                   />
@@ -841,7 +1241,7 @@ export const WorkerDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Urgency Level</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Urgency</label>
                 <select
                   value={matUrgency}
                   onChange={(e) => setMatUrgency(e.target.value as any)}
@@ -852,7 +1252,6 @@ export const WorkerDashboard: React.FC = () => {
                 </select>
               </div>
 
-              {/* Items List */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-xs font-bold text-gray-700">Material Items Needed</label>
@@ -940,7 +1339,7 @@ export const WorkerDashboard: React.FC = () => {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 4: FIELD PER DIEM & EXPENSE RECEIPT CLAIM */}
+      {/* MODAL: FIELD PER DIEM & EXPENSE RECEIPT CLAIM */}
       {/* ============================================================ */}
       {showExpenseModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -957,7 +1356,7 @@ export const WorkerDashboard: React.FC = () => {
 
             <form onSubmit={handleSubmitExpense} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Allowance / Expense Category</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Category</label>
                 <select
                   value={expCategory}
                   onChange={(e) => setExpCategory(e.target.value as ExpenseCategory)}
@@ -978,7 +1377,7 @@ export const WorkerDashboard: React.FC = () => {
                   type="text"
                   value={expDestination}
                   onChange={(e) => setExpDestination(e.target.value)}
-                  placeholder="e.g. Geita Gold Mine Site (Overnight Mobilization)"
+                  placeholder="e.g. Geita Gold Mine Site"
                   required
                   className="w-full border border-gray-300 rounded p-2 text-xs"
                 />
@@ -1015,26 +1414,22 @@ export const WorkerDashboard: React.FC = () => {
                   rows={2}
                   value={expDescription}
                   onChange={(e) => setExpDescription(e.target.value)}
-                  placeholder="e.g. Food allowance for 5 days of substation wiring + lodging invoice attached."
+                  placeholder="e.g. 5 days food per diem + attached lodge invoice."
                   required
                   className="w-full border border-gray-300 rounded p-2 text-xs"
                 />
               </div>
 
-              {/* Receipt Attachment File Input */}
               <div className="p-3 bg-amber-50/60 border border-amber-200 rounded">
                 <label className="block text-xs font-bold text-[#10243A] mb-1 flex items-center space-x-1.5">
                   <Upload className="w-3.5 h-3.5 text-amber-brand" />
                   <span>Attach Expenditure Receipt / Hotel Invoice</span>
                 </label>
-                <p className="text-[11px] text-gray-500 mb-2">
-                  Take a photo of your receipt, lodge tax invoice, or bus ticket.
-                </p>
                 <input
                   type="file"
                   accept="image/*,.pdf"
                   onChange={handleReceiptUpload}
-                  className="w-full text-xs text-gray-700 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#10243A] file:text-white hover:file:bg-[#16314D]"
+                  className="w-full text-xs text-gray-700 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#10243A] file:text-white"
                 />
                 {expReceiptName && (
                   <div className="mt-2 text-xs text-emerald-700 font-semibold flex items-center space-x-1">
@@ -1064,9 +1459,7 @@ export const WorkerDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* ============================================================ */}
-      {/* MODAL 5: RECEIPT INSPECTION LIGHTBOX */}
-      {/* ============================================================ */}
+      {/* Lightbox Modal */}
       {previewImage && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-xl w-full p-4 relative">
@@ -1076,9 +1469,9 @@ export const WorkerDashboard: React.FC = () => {
             >
               <X className="w-5 h-5" />
             </button>
-            <h4 className="text-sm font-bold text-[#10243A] mb-3">Audited Receipt Document</h4>
+            <h4 className="text-sm font-bold text-[#10243A] mb-3">Audited Attachment Document</h4>
             <div className="max-h-[70vh] overflow-auto flex items-center justify-center bg-gray-100 rounded p-2">
-              <img src={previewImage} alt="Receipt Preview" className="max-w-full max-h-[65vh] object-contain rounded" />
+              <img src={previewImage} alt="Preview" className="max-w-full max-h-[65vh] object-contain rounded" />
             </div>
           </div>
         </div>
@@ -1087,4 +1480,3 @@ export const WorkerDashboard: React.FC = () => {
     </div>
   );
 };
-

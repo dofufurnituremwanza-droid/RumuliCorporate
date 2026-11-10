@@ -7,6 +7,7 @@ export interface UserProfile {
   employeeId: string; // e.g. RUM-ADM-001, RUM-ENG-104
   name: string;
   email: string;
+  password?: string; // Created and managed by Admin
   phone: string;
   role: UserRole;
   department: string;
@@ -14,7 +15,7 @@ export interface UserProfile {
   baseSalary: number; // in TZS
   status: UserStatus;
   joinedDate: string;
-  avatarUrl?: string;
+  avatarUrl?: string; // User/Admin profile photo attachment
 }
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -59,7 +60,7 @@ export interface EarlySalaryRequest {
 export interface MaterialItem {
   item: string;
   quantity: number;
-  unit: string; // e.g., meters, drums, bags, pcs, units
+  unit: string; // e.g. Meters, Drums, Bags, Sets, Pieces
   purpose: string;
 }
 
@@ -81,11 +82,11 @@ export interface MaterialRequest {
 }
 
 export type ExpenseCategory = 
-  | 'FOOD_PER_DIEM'        // Food & meal allowance on far field sites
-  | 'ACCOMMODATION_SLEEP'   // Lodge / accommodation when working far
-  | 'TRAVEL_TRANSPORT'     // Bus / train / vehicle transit fare
-  | 'FUEL_ALLOWANCE'       // Vehicle / generator fuel
-  | 'EMERGENCY_MATERIALS'  // Local site consumable purchases
+  | 'FOOD_PER_DIEM'        // Daily food subsistence allowance on far work sites
+  | 'ACCOMMODATION_SLEEP'   // Lodge / hotel accommodation invoice when working far
+  | 'TRAVEL_TRANSPORT'     // Long-distance bus/vehicle transit fare
+  | 'FUEL_ALLOWANCE'       // Fleet / generator fuel
+  | 'EMERGENCY_MATERIALS'  // Emergency site purchases
   | 'OTHER_EXPENDITURE';
 
 export interface FieldExpense {
@@ -98,13 +99,49 @@ export interface FieldExpense {
   daysCount?: number;
   amount: number; // TZS
   description: string;
-  receiptDataUrl?: string;
+  receiptDataUrl?: string; // Uploaded receipt image/document
   receiptFileName?: string;
   status: RequestStatus;
   submittedAt: string;
   reviewedBy?: string;
   reviewedAt?: string;
   reviewNotes?: string;
+}
+
+// Project Field Execution Report submitted by workers
+export interface ProjectReport {
+  id: string;
+  workerUid: string;
+  workerName: string;
+  employeeId: string;
+  projectTitle: string;
+  siteLocation: string;
+  reportDate: string;
+  workCompleted: string;
+  technicalChallenges?: string;
+  weatherHseConditions?: string;
+  equipmentUsed?: string;
+  photos: Array<{ name: string; url: string }>;
+  status: 'SUBMITTED' | 'REVIEWED' | 'ACTION_REQUIRED';
+  submittedAt: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  reviewNotes?: string;
+}
+
+// Daily HSE Toolbox & Live-Line Safety Sign-off
+export interface SafetySignOff {
+  id: string;
+  workerUid: string;
+  workerName: string;
+  date: string;
+  siteLocation: string;
+  workScope: string;
+  ppeInspected: boolean;
+  isolationPermitVerified: boolean;
+  earthingMatVerified: boolean;
+  emergencyPlanReviewed: boolean;
+  signedAt: string;
 }
 
 export interface ActivityLog {
@@ -114,6 +151,5 @@ export interface ActivityLog {
   action: string;
   details: string;
   timestamp: string;
-  category: 'AUTH' | 'TASK' | 'SALARY' | 'MATERIALS' | 'EXPENSE' | 'ADMIN';
+  category: 'AUTH' | 'TASK' | 'SALARY' | 'MATERIALS' | 'EXPENSE' | 'REPORT' | 'ADMIN';
 }
-

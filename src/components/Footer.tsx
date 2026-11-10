@@ -200,6 +200,36 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
+        {/* Prominent Staff & Operations Portal Access Bar at Bottom */}
+        <div className="mt-12 p-6 bg-[#0B1726]/90 border border-white/10 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+          <div className="flex items-center space-x-3.5 text-left">
+            <div className="w-10 h-10 rounded bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-[#10243A] shadow-md flex-shrink-0">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-extrabold text-sm text-white tracking-wide">
+                  RUMULI CORPORATE STAFF & FIELD OPERATIONS PORTAL
+                </span>
+                <span className="bg-amber-500/20 text-amber-brand border border-amber-500/30 text-[9px] uppercase px-1.5 py-0.2 rounded font-mono font-bold">
+                  Restricted
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Internal management system for certified field engineers to view assigned tasks, submit daily project reports, requisition materials, and claim field per diem.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/portal"
+            className="flex-shrink-0 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-[#10243A] font-extrabold text-xs uppercase tracking-wider rounded-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-1.5 hover:-translate-y-0.5"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Staff Portal Sign In</span>
+            <ChevronRight className="w-4 h-4 ml-0.5" />
+          </Link>
+        </div>
+
         {/* Bottom Legal & Copyright Bar */}
         <div className="pt-8 text-center text-xs text-gray-400">
           <p>© {new Date().getFullYear()} {COMPANY_INFO.brandName}. All rights reserved.</p>
