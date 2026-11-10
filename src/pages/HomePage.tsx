@@ -452,20 +452,43 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 6. CLIENTS & SECTORS WE SERVE */}
-      <section className="py-12 bg-[#F4F5F6] border-b border-gray-200">
+      <section className="py-16 bg-[#F4F5F6] border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
-            <p className="text-xs uppercase font-bold tracking-widest text-[#667482] text-center mb-6">
-              Institutional, Utility & Corporate Experience
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <span className="text-xs uppercase font-bold tracking-widest text-amber-hover">
+                Institutional, Utility & Corporate Experience
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#10243A] mt-1">
+                Trusted by National Utilities & Industry Leaders
+              </h2>
+              <p className="text-xs sm:text-sm text-[#667482] mt-2">
+                Documented engineering assignments delivered for Tanzania's principal public utilities, multinational telecoms, industrial gas producers, and municipal authorities.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
               {CLIENT_LOGOS.map((client, i) => (
                 <div 
                   key={i} 
-                  className="bg-white border border-gray-200 p-4 text-center flex flex-col justify-center items-center rounded-sm card-hover-lift"
+                  className="bg-white border border-gray-200 p-4 text-center flex flex-col justify-between items-center rounded-sm card-hover-lift group h-44 transition-all duration-300 hover:border-amber-brand/50 shadow-2xs"
                 >
-                  <span className="font-bold text-sm text-[#10243A]">{client.name}</span>
-                  <span className="text-[10px] text-gray-500 mt-0.5 truncate max-w-full">{client.description}</span>
+                  <div className="w-full flex-1 flex items-center justify-center p-2">
+                    <img 
+                      src={client.logo} 
+                      alt={`${client.name} official logo`} 
+                      className="max-h-14 max-w-[110px] object-contain transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="w-full border-t border-gray-100 pt-2.5 mt-auto">
+                    <span className="font-bold text-xs text-[#10243A] block truncate" title={client.name}>
+                      {client.name}
+                    </span>
+                    <span className="text-[10px] text-gray-500 block truncate" title={client.description}>
+                      {client.description}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

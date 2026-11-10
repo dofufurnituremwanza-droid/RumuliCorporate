@@ -7,7 +7,7 @@ import {
   FileBadge,
   Briefcase
 } from 'lucide-react';
-import { COMPANY_INFO, MANAGEMENT_TEAM } from '../data/companyData';
+import { COMPANY_INFO, MANAGEMENT_TEAM, CLIENT_LOGOS } from '../data/companyData';
 import { PageHeader } from '../components/PageHeader';
 import { AnimatedSection } from '../components/AnimatedSection';
 import { EquipmentSection } from '../components/EquipmentSection';
@@ -335,6 +335,51 @@ export const AboutPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      {/* Institutional Clients & Utility Partners */}
+      <section className="py-16 bg-[#F4F5F6] border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AnimatedSection>
+            <div className="max-w-3xl mb-8">
+              <span className="text-xs uppercase font-bold tracking-widest text-amber-hover">
+                National Footprint & Proven Relationships
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#10243A] tracking-tight mt-1">
+                Institutional Clients & Utility Partners
+              </h2>
+              <p className="text-xs sm:text-sm text-[#667482] mt-2 leading-relaxed">
+                Rumuli Corporate maintains documented engineering delivery records for Tanzania's major power utilities, rural infrastructure programs, telecommunication operators, municipal utilities, and premier hospitality groups.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+              {CLIENT_LOGOS.map((client, idx) => (
+                <div 
+                  key={idx}
+                  className="bg-white border border-gray-200 p-4 rounded-sm flex flex-col justify-between items-center text-center group h-44 hover:border-amber-brand/50 transition-all duration-300 shadow-2xs card-hover-lift"
+                >
+                  <div className="w-full flex-1 flex items-center justify-center p-2">
+                    <img 
+                      src={client.logo} 
+                      alt={`${client.name} official logo`} 
+                      className="max-h-14 max-w-[110px] object-contain transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="w-full border-t border-gray-100 pt-2.5 mt-auto">
+                    <span className="font-bold text-xs text-[#10243A] block truncate" title={client.name}>
+                      {client.name}
+                    </span>
+                    <span className="text-[10px] text-gray-500 block truncate" title={client.description}>
+                      {client.description}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </AnimatedSection>
         </div>

@@ -102,16 +102,28 @@ export const ProjectsPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {CLIENT_LOGOS.map((client, idx) => (
-                  <div key={idx} className="p-4 bg-[#F4F5F6] border border-gray-200 rounded-sm card-hover-lift">
-                    <div className="flex items-center space-x-2 text-[#10243A] font-bold text-sm">
-                      <Building2 className="w-4 h-4 text-amber-brand flex-shrink-0" />
-                      <span>{client.name}</span>
+                  <div 
+                    key={idx} 
+                    className="p-4 bg-[#F4F5F6] border border-gray-200 rounded-sm card-hover-lift flex items-center space-x-3.5 group hover:border-amber-brand/50 hover:bg-white transition-all duration-300"
+                  >
+                    <div className="w-14 h-14 flex-shrink-0 bg-white border border-gray-200 rounded-sm p-1.5 flex items-center justify-center shadow-2xs">
+                      <img 
+                        src={client.logo} 
+                        alt={`${client.name} logo`} 
+                        className="max-h-11 max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
+                        loading="lazy"
+                      />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {client.description}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[#10243A] font-bold text-sm truncate" title={client.name}>
+                        {client.name}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-tight" title={client.description}>
+                        {client.description}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>

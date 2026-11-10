@@ -479,14 +479,48 @@ export const CREDENTIALS: Credential[] = [
   }
 ];
 
-export const CLIENT_LOGOS = [
-  { name: 'TANESCO', description: 'Tanzania Electric Supply Company Limited' },
-  { name: 'REA', description: 'Rural Energy Agency' },
-  { name: 'Vodacom Tanzania', description: 'Telecommunications' },
-  { name: 'Airtel Tanzania', description: 'Telecommunications' },
-  { name: 'TOL Gases', description: 'Tanzania Oxygen Limited' },
-  { name: 'DAWASA', description: 'Dar es Salaam Water & Sewerage Authority' },
-  { name: 'Serena Hotels', description: 'Hospitality & Commercial Infrastructure' }
+export interface ClientLogo {
+  name: string;
+  description: string;
+  logo: string;
+}
+
+export const CLIENT_LOGOS: ClientLogo[] = [
+  { 
+    name: 'TANESCO', 
+    description: 'Tanzania Electric Supply Company Limited',
+    logo: '/images/clients/tanesco.png'
+  },
+  { 
+    name: 'REA', 
+    description: 'Rural Energy Agency',
+    logo: '/images/clients/rea.jpg'
+  },
+  { 
+    name: 'Vodacom Tanzania', 
+    description: 'Telecommunications',
+    logo: '/images/clients/vodacom.svg'
+  },
+  { 
+    name: 'Airtel Tanzania', 
+    description: 'Telecommunications',
+    logo: '/images/clients/airtel.svg'
+  },
+  { 
+    name: 'TOL Gases', 
+    description: 'Tanzania Oxygen Limited',
+    logo: '/images/clients/tol-gases.png'
+  },
+  { 
+    name: 'DAWASA', 
+    description: 'Dar es Salaam Water & Sewerage Authority',
+    logo: '/images/clients/dawasa.png'
+  },
+  { 
+    name: 'Serena Hotels', 
+    description: 'Hospitality & Commercial Infrastructure',
+    logo: '/images/clients/serena-hotels.svg'
+  }
 ];
 
 export const MANAGEMENT_TEAM = [
