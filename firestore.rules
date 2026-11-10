@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Rumuli Corporate Staff & Operations Portal
+    // Allow read/write access to portal collections:
+    // users, tasks, salary_advances, material_requests, field_expenses, activity_logs
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
