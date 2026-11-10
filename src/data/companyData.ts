@@ -2,7 +2,7 @@ export interface Project {
   id: string;
   title: string;
   client: string;
-  category: 'Power & Substations' | 'Transmission & Distribution' | 'Telecommunications & ICT' | 'Civil & Industrial';
+  category: 'Mining & Industrial' | 'Power & Substations' | 'Transmission & Distribution' | 'Telecommunications & ICT' | 'Civil & Industrial';
   location: string;
   period?: string;
   summary: string;
@@ -94,7 +94,7 @@ export const COMPANY_INFO = {
   stats: [
     { label: 'Founded', value: '2016' },
     { label: 'Registration No.', value: '123062' },
-    { label: 'Core Engineering Sectors', value: '7' },
+    { label: 'Core Engineering Sectors', value: '8' },
     { label: 'Safety Record', value: 'Zero Harm' },
   ]
 };
@@ -105,7 +105,7 @@ export const SERVICES: ServiceDetail[] = [
     title: 'Electrical & Electronic Engineering',
     shortDescription: 'Industrial and commercial electrical power systems, plant installations, MV/LV networks, and automated control systems.',
     fullDescription: 'Rumuli delivers comprehensive electrical and electronic engineering solutions for public utilities, commercial facilities, and heavy industrial plants. Our scope spans design, turnkey installation, power reticulation, motor control centers (MCC), panel fabrication, power quality analysis, and routine preventative maintenance.',
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/img-wa0031.jpg',
     iconName: 'Zap',
     capabilities: [
       'Low & Medium Voltage (LV/MV) electrical distribution boards',
@@ -139,7 +139,7 @@ export const SERVICES: ServiceDetail[] = [
     title: 'Substations & Live Line Works',
     shortDescription: 'Substation civil & electrical works, power transformers, 220kV reactors, switchgear, and live-line maintenance technologies.',
     fullDescription: 'Our substation division executes high-voltage substation projects up to 220kV, incorporating civil foundation works, steel gantry fabrication, power transformer positioning, switchgear assembly, protection relays, and control cabling. Additionally, Rumuli possesses specialized capability in live-line maintenance, enabling work on energized lines without interrupting critical consumer power.',
-    image: 'https://images.unsplash.com/photo-1544724569-5f546fd6f2b5?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/img-wa0054.jpg',
     iconName: 'Cpu',
     capabilities: [
       'EPC construction of 220/33kV and 33/11kV electrical substations',
@@ -150,6 +150,23 @@ export const SERVICES: ServiceDetail[] = [
       'Substation yard civil works, transformer plinths, and perimeter fencing'
     ],
     standards: ['IEC 61936', 'IEC 62271', 'Live Line Safety IEEE 516']
+  },
+  {
+    id: 'mining-engineering',
+    title: 'Mining Infrastructure & Mineral Processing',
+    shortDescription: 'Turnkey mine electrification, dedicated substation EPC, concrete CIP/vat leaching tanks, heavy motor control, and tailings systems.',
+    fullDescription: 'Rumuli Corporate delivers end-to-end electrical, civil, and mechanical engineering for Tanzania’s burgeoning mineral extraction and processing industry. From high-voltage line reticulation and dedicated substation EPC to the civil construction of gold cyanidation / carbon-in-pulp (CIP) leaching tanks, slurry pumps, heavy variable-speed motor drives (VFDs), and mine site water reticulation, we keep extractive operations continuously energized and compliant.',
+    image: '/images/img-wa0026.jpg',
+    iconName: 'Pickaxe',
+    capabilities: [
+      'Dedicated mine-site 33kV/11kV electrical substations & step-down transformer integration',
+      'Civil construction of reinforced concrete leaching vats, circular CIP tanks & slurry sumps',
+      'Industrial motor control centers, soft-starters (VFDs) & heavy ball-mill electrification',
+      'Mine water intake networks, deep borehole pumps, and high-pressure dewatering systems',
+      'Tailings storage facility (TSF) containment piping, liners, and environmental monitors',
+      '24/7 on-call breakdown maintenance and live-line servicing for uninterrupted mine processing'
+    ],
+    standards: ['Tanzania Mining Commission (TMC) Standards', 'TBS Concrete Specifications', 'Zero Harm OSHA Mine Regulations', 'IEC 60076 & IEEE 841']
   },
   {
     id: 'civil-building',
@@ -207,7 +224,7 @@ export const SERVICES: ServiceDetail[] = [
     title: 'General Supplies & Procurement',
     shortDescription: 'Certified procurement and supply of heavy electrical equipment, conductors, transformers, switchgear, and safety equipment.',
     fullDescription: 'Leveraging established global supply chains and reputable manufacturers, Rumuli procures and supplies certified electrical, mechanical, and civil engineering materials. We ensure compliance with national standards, rigorous quality control, timely logistics, and competitive pricing for infrastructure projects.',
-    image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/img-wa0002.jpg',
     iconName: 'PackageCheck',
     capabilities: [
       'Power and distribution transformers (oil-immersed and dry-type)',
@@ -222,6 +239,23 @@ export const SERVICES: ServiceDetail[] = [
 ];
 
 export const PROJECTS: Project[] = [
+  {
+    id: 'gold-mine-electrification-leaching',
+    title: 'Gold Processing Plant Electrification & Leaching Vat Construction',
+    client: 'Mineral Processing & Mining Enterprise',
+    category: 'Mining & Industrial',
+    location: 'Geita / Lake Zone Mining Belt, Tanzania',
+    summary: 'Turnkey delivery of a multi-stage circular reinforced concrete vat leaching facility, step-down substation transformer installation, high-voltage terminations, and industrial motor drive panels for commercial gold extraction.',
+    scope: [
+      'Civil engineering, foundation excavation, and casting of multi-stage circular reinforced concrete leaching vats',
+      'Heavy-duty transformer installation, elevated plinth construction, and 33kV high-voltage cable terminations',
+      'Installation of automated VOLEX motor control centers (MCC) and soft-starters for high-capacity slurry pumps',
+      'Slurry piping reticulation, valve manifolds, and deep borehole dewatering integration',
+      'Comprehensive earthing grid verification, dielectric strength testing, and full-load plant energization'
+    ],
+    image: '/images/img-wa0025.jpg',
+    featured: true
+  },
   {
     id: 'lugoba-power-line',
     title: 'Construction of 33kV Line & 315kVA Transformer Installation',
@@ -574,5 +608,129 @@ export const EQUIPMENT_ON_DEMAND_NOTE = {
   headline: 'Instant Heavy Machinery Mobilization',
   content: 'NB: Other equipment not listed above, such as big trucks and cranes, are available for hire almost instantly through our vetted plant hire agreements.'
 };
+
+export interface GalleryPhoto {
+  id: string;
+  url: string;
+  title: string;
+  category: 'Mining & Mineral Works' | 'Substations & Electrification' | 'Heavy Plant & Rigging' | 'Diagnostics & Switchgear';
+  description: string;
+}
+
+export const FIELD_GALLERY_IMAGES: GalleryPhoto[] = [
+  {
+    id: 'gal-1',
+    url: '/images/img-wa0025.jpg',
+    title: 'Multi-Stage Gold Leaching Vat Construction',
+    category: 'Mining & Mineral Works',
+    description: 'Reinforced concrete circular leaching vats and carbon-in-pulp (CIP) processing tanks at active Tanzanian gold recovery plant.'
+  },
+  {
+    id: 'gal-2',
+    url: '/images/img-wa0026.jpg',
+    title: 'Mineral Processing Tank Cascade',
+    category: 'Mining & Mineral Works',
+    description: 'Cascading concrete leaching tanks with fluid transfer pipelines and slurry management civil infrastructure.'
+  },
+  {
+    id: 'gal-3',
+    url: '/images/img-wa0035.jpg',
+    title: 'VOLEX Industrial Soft-Starter & Motor Control',
+    category: 'Mining & Mineral Works',
+    description: 'Automated 630A motor drive panel with solid copper busbars and current transformers for mine slurry pumps and ball mills.'
+  },
+  {
+    id: 'gal-4',
+    url: '/images/img-wa0031.jpg',
+    title: 'High-Capacity Substation Power Transformer',
+    category: 'Substations & Electrification',
+    description: 'Outdoor step-down power transformer with high-voltage bushings, conservator tank, and secondary cabling.'
+  },
+  {
+    id: 'gal-5',
+    url: '/images/img-wa0033.jpg',
+    title: 'Transformer Commissioning & Oil Dialectric Testing',
+    category: 'Substations & Electrification',
+    description: 'On-site transformer oil filtration, filling, and dielectric breakdown verification.'
+  },
+  {
+    id: 'gal-6',
+    url: '/images/img-wa0053.jpg',
+    title: 'HV Cable Terminations on Transformer Plinth',
+    category: 'Substations & Electrification',
+    description: 'Lead engineer overseeing 33kV red insulated cable terminations and concrete foundation plinth installation.'
+  },
+  {
+    id: 'gal-7',
+    url: '/images/img-wa0054.jpg',
+    title: 'Certified Linemen & Cable Technicians on Site',
+    category: 'Substations & Electrification',
+    description: 'Rumuli electrical technical crew in high-vis PPE and fall-arrest harnesses executing elevated transformer connections.'
+  },
+  {
+    id: 'gal-8',
+    url: '/images/img-wa0055.jpg',
+    title: 'Transformer Bushing Alignment & Rigging',
+    category: 'Substations & Electrification',
+    description: 'Precision alignment of high-voltage stress cones and phase conductors on elevated concrete transformer base.'
+  },
+  {
+    id: 'gal-9',
+    url: '/images/img-wa0052.jpg',
+    title: 'Principal Project Engineer on Infrastructure Site',
+    category: 'Substations & Electrification',
+    description: 'Executive project leadership conducting pre-energization quality and safety sign-off.'
+  },
+  {
+    id: 'gal-10',
+    url: '/images/img-wa0002.jpg',
+    title: 'UNIC 4260 Mobile Boom Crane Offloading Transformers',
+    category: 'Heavy Plant & Rigging',
+    description: 'Hydraulic boom crane truck maneuvering heavy distribution transformers directly onto field foundation pads.'
+  },
+  {
+    id: 'gal-11',
+    url: '/images/img-wa0004.jpg',
+    title: 'Precision Crane Lift & Rigging Maneuver',
+    category: 'Heavy Plant & Rigging',
+    description: 'Heavy lift positioning of 33kV step-down transformer alongside site aggregate stockpiles.'
+  },
+  {
+    id: 'gal-12',
+    url: '/images/img-wa0005.jpg',
+    title: 'Plant Mobilization & Field Operations Crew',
+    category: 'Heavy Plant & Rigging',
+    description: 'Crane operator and field safety lead coordinating safe offloading of electrical power equipment.'
+  },
+  {
+    id: 'gal-13',
+    url: '/images/img-wa0008.jpg',
+    title: 'Site Delivery & Offloading Operations',
+    category: 'Heavy Plant & Rigging',
+    description: 'Hydraulic outrigger stabilization and transformer transport in remote mining corridor.'
+  },
+  {
+    id: 'gal-14',
+    url: '/images/img-wa0014.jpg',
+    title: 'Rigging Specialists Securing Lifting Lugs',
+    category: 'Heavy Plant & Rigging',
+    description: 'Certified riggers inspecting lifting straps and porcelain insulators prior to final foundation placement.'
+  },
+  {
+    id: 'gal-15',
+    url: '/images/img-wa0044.jpg',
+    title: 'FLUKE 117C Precision Multimeter Testing',
+    category: 'Diagnostics & Switchgear',
+    description: 'Digital true-RMS multimeter conducting voltage verification and continuity checks on site cable reels.'
+  },
+  {
+    id: 'gal-16',
+    url: '/images/img-wa0029.jpg',
+    title: '3-Phase Cutout Switchboard Installation',
+    category: 'Diagnostics & Switchgear',
+    description: 'Three-phase heavy duty cutout switchboard with color-coded phase conductors for industrial load distribution.'
+  }
+];
+
 
 

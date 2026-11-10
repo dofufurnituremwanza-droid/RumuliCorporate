@@ -12,11 +12,13 @@ import {
   ChevronRight,
   ArrowRight,
   ShieldCheck,
-  Truck
+  Truck,
+  Pickaxe
 } from 'lucide-react';
 import { SERVICES } from '../data/companyData';
 import { PageHeader } from '../components/PageHeader';
 import { AnimatedSection } from '../components/AnimatedSection';
+import { FieldGallery } from '../components/FieldGallery';
 
 export const ServicesPage: React.FC = () => {
   const location = useLocation();
@@ -42,6 +44,7 @@ export const ServicesPage: React.FC = () => {
       case 'Radio': return <Radio className="w-5 h-5 text-amber-brand" />;
       case 'Wrench': return <Wrench className="w-5 h-5 text-amber-brand" />;
       case 'PackageCheck': return <PackageCheck className="w-5 h-5 text-amber-brand" />;
+      case 'Pickaxe': return <Pickaxe className="w-5 h-5 text-amber-brand" />;
       default: return <Zap className="w-5 h-5 text-amber-brand" />;
     }
   };
@@ -173,6 +176,12 @@ export const ServicesPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Field Operations & Mining Execution Gallery */}
+      <FieldGallery 
+        title="Field Operations, Mining & Heavy Plant Gallery"
+        subtitle="Visual evidence from Rumuli Corporate active project sites across Tanzania: gold processing plants, concrete leaching tanks, heavy crane rigging, and substation energization."
+      />
 
       {/* Equipment & Plant Mobilization Callout */}
       <section className="bg-white border-y border-gray-200 py-12">

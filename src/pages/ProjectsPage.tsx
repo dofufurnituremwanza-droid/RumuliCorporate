@@ -10,6 +10,7 @@ export const ProjectsPage: React.FC = () => {
 
   const categories = [
     'All',
+    'Mining & Industrial',
     'Power & Substations',
     'Transmission & Distribution',
     'Telecommunications & ICT',

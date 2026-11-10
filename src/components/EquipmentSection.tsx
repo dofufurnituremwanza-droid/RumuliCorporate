@@ -121,6 +121,34 @@ export const EquipmentSection: React.FC<EquipmentSectionProps> = ({ compact = fa
                   </div>
                 </div>
 
+                {/* Category Image Banner if available */}
+                {group.id === 'plants-transport' && (
+                  <div className="relative h-44 overflow-hidden bg-gray-100 border-b border-gray-200">
+                    <img 
+                      src="/images/img-wa0002.jpg" 
+                      alt="Rumuli heavy boom crane truck positioning distribution transformers" 
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-3">
+                      <span className="text-white text-xs font-semibold">Heavy Boom Crane Truck & Transformer Offloading</span>
+                    </div>
+                  </div>
+                )}
+                {group.id === 'instruments' && (
+                  <div className="relative h-44 overflow-hidden bg-gray-100 border-b border-gray-200">
+                    <img 
+                      src="/images/img-wa0035.jpg" 
+                      alt="VOLEX industrial motor drive and soft starter panel" 
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-3">
+                      <span className="text-white text-xs font-semibold">Industrial Motor Control Drives & Busbar Diagnostics</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Items List */}
                 <div className="p-6 flex-grow">
                   <ul className="space-y-3">

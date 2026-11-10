@@ -108,8 +108,8 @@ export const AboutPage: React.FC = () => {
               <AnimatedSection direction="right" delay={200}>
                 <div className="relative border-4 border-[#10243A] p-2 bg-white shadow-xl card-hover-lift">
                   <img 
-                    src="https://images.unsplash.com/photo-1541888946425-d0fbb186156f?auto=format&fit=crop&w=1000&q=80" 
-                    alt="Engineering team supervising infrastructure construction site"
+                    src="/images/img-wa0053.jpg" 
+                    alt="Rumuli executive engineer supervising substation transformer installation plinth"
                     className="w-full h-80 sm:h-96 object-cover"
                   />
                   <div className="p-4 bg-[#10243A] text-white">
@@ -307,6 +307,32 @@ export const AboutPage: React.FC = () => {
                 <div>
                   <strong className="block text-[#10243A] text-sm mb-1">HSE & Quality Inspectors</strong>
                   <p>Dedicated on-site safety officers enforcing Zero Harm guidelines, OSHA standards, and environmental mitigation protocols.</p>
+                </div>
+              </div>
+
+              {/* On-Site Technical Deployment Gallery */}
+              <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="relative rounded overflow-hidden shadow-sm group">
+                  <img 
+                    src="/images/img-wa0054.jpg" 
+                    alt="Rumuli certified field technicians executing transformer terminations"
+                    className="w-full h-48 sm:h-56 object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-3">
+                    <span className="text-white text-xs font-semibold">Field Crew Executing Substation Bushing Terminations</span>
+                  </div>
+                </div>
+                <div className="relative rounded overflow-hidden shadow-sm group">
+                  <img 
+                    src="/images/img-wa0052.jpg" 
+                    alt="Rumuli executive electrical engineer on site"
+                    className="w-full h-48 sm:h-56 object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-3">
+                    <span className="text-white text-xs font-semibold">Technical Leadership Supervising Energization Readiness</span>
+                  </div>
                 </div>
               </div>
             </div>

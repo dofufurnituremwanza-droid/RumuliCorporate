@@ -10,13 +10,15 @@ import {
   ArrowRight, 
   HardHat, 
   Leaf, 
-  FileCheck2 
+  FileCheck2,
+  Pickaxe 
 } from 'lucide-react';
 import { COMPANY_INFO, SERVICES, PROJECTS, CLIENT_LOGOS } from '../data/companyData';
 import { ProjectCard } from '../components/ProjectCard';
 import { AnimatedSection } from '../components/AnimatedSection';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { EquipmentSection } from '../components/EquipmentSection';
+import { FieldGallery } from '../components/FieldGallery';
 
 export const HomePage: React.FC = () => {
   const featuredProjects = PROJECTS.filter(p => p.featured);
@@ -360,7 +362,7 @@ export const HomePage: React.FC = () => {
                   Core Disciplines
                 </span>
                 <p className="text-3xl sm:text-4xl font-extrabold text-white">
-                  <AnimatedCounter end={7} duration={1200} suffix=" Sectors" />
+                  <AnimatedCounter end={8} duration={1200} suffix=" Sectors" />
                 </p>
                 <p className="text-xs text-gray-300">Turnkey Scope</p>
               </AnimatedSection>
@@ -378,17 +380,18 @@ export const HomePage: React.FC = () => {
 
             <AnimatedSection delay={500} className="pt-4 flex flex-wrap gap-4">
               <Link
-                to="/services#civil-building"
+                to="/services#mining-engineering"
                 className="inline-flex items-center px-6 py-3.5 text-xs uppercase tracking-wider font-semibold rounded bg-[#E3A129] text-[#10243A] hover:bg-[#C88B1E] transition-all duration-200 shadow hover:-translate-y-0.5"
               >
-                <span>Explore Civil & Building Works</span>
+                <Pickaxe className="w-4 h-4 mr-2" />
+                <span>Explore Mining & Leaching Services</span>
                 <ChevronRight className="w-4 h-4 ml-1.5" />
               </Link>
               <Link
-                to="/compliance"
+                to="/services#civil-building"
                 className="inline-flex items-center px-6 py-3.5 text-xs uppercase tracking-wider font-semibold rounded border border-gray-400 text-white hover:bg-white hover:text-[#10243A] transition-all duration-200 shadow hover:-translate-y-0.5"
               >
-                <span>Inspect Licences & Registrations</span>
+                <span>Civil & Building Works</span>
               </Link>
               <Link
                 to="/about#equipment"
@@ -554,7 +557,13 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 8. CALL TO ACTION SECTION */}
+      {/* 8. FIELD OPERATIONS & MINING EXECUTION GALLERY */}
+      <FieldGallery 
+        title="Field Operations & Mining Infrastructure Showcase"
+        subtitle="Direct photographic documentation from our active engineering assignments across Tanzania: gold vat leaching plants, power substations, heavy crane lifts, and motor control installations."
+      />
+
+      {/* 9. CALL TO ACTION SECTION */}
       <section className="bg-[#10243A] text-white py-16 sm:py-20 border-t-4 border-amber-brand relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <AnimatedSection direction="up">
