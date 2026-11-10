@@ -122,7 +122,7 @@ export const SERVICES: ServiceDetail[] = [
     title: 'Transmission & Distribution Networks',
     shortDescription: 'Overhead power line construction, conductor stringing, pole/tower erection, and rural distribution networks up to 220kV.',
     fullDescription: 'We specialize in the full lifecycle execution of overhead and underground power transmission and distribution lines. From route surveying, right-of-way clearance, foundation excavations, tower and pole erection to conductor stringing and grid synchronization, Rumuli provides reliable power connectivity across urban centers and rural territories.',
-    image: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/transmission-distribution.jpg',
     iconName: 'Activity',
     capabilities: [
       'Construction of 11kV, 33kV, 132kV, and 220kV transmission lines',
@@ -271,7 +271,7 @@ export const PROJECTS: Project[] = [
       'Surge arrester protection, drop-out fuse cutouts, and low-voltage feeder pillar integration',
       'Earth mat resistance testing, insulation resistance testing, and commissioning with TANESCO'
     ],
-    image: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=1000&q=80',
+    image: '/images/transmission-distribution.jpg',
     featured: true
   },
   {
@@ -307,7 +307,7 @@ export const PROJECTS: Project[] = [
       'Customer service connection drops and smart metering board integrations',
       'Comprehensive community electrical safety awareness and stakeholder liaison'
     ],
-    image: 'https://images.unsplash.com/photo-1509390144018-eeaf650491a9?auto=format&fit=crop&w=1000&q=80',
+    image: '/images/transmission-distribution.jpg',
     featured: true
   },
   {

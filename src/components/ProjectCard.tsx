@@ -19,6 +19,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             alt={project.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
+            onError={(e) => {
+              e.currentTarget.src = '/images/transmission-distribution.jpg';
+            }}
           />
           <div className="absolute top-3 left-3 bg-[#10243A] text-white text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-sm shadow">
             {project.category}
@@ -116,6 +119,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                   src={project.image} 
                   alt={project.title}
                   className="w-full h-full object-cover" 
+                  onError={(e) => {
+                    e.currentTarget.src = '/images/transmission-distribution.jpg';
+                  }}
                 />
               </div>
 
