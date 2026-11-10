@@ -15,8 +15,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const COLLECTIONS_TO_PURGE = [
-  'tasks',
+  'salary_advances',
   'salary_requests',
+  'tasks',
   'field_expenses',
   'material_requests',
   'project_reports',
@@ -32,6 +33,7 @@ async function cleanFirestore() {
     console.log(`Found ${snap.size} documents in '${colName}'`);
     for (const d of snap.docs) {
       await deleteDoc(doc(db, colName, d.id));
+      console.log(`Deleted ${colName}/${d.id}`);
     }
     console.log(`✓ Purged all documents in '${colName}'`);
   }
@@ -56,8 +58,8 @@ async function cleanFirestore() {
     phone: '+255 784 123 456',
     role: 'ADMIN',
     department: 'Corporate Technical Directorate',
-    designation: 'Managing Director & Principal Executive Engineer',
-    baseSalary: 7500000,
+    designation: 'Managing Director & Operations Executive',
+    baseSalary: 0,
     status: 'ACTIVE',
     joinedDate: '2026-01-01',
     avatarUrl: ''
@@ -66,21 +68,7 @@ async function cleanFirestore() {
   await setDoc(doc(db, 'users', 'admin-master'), masterAdmin);
   console.log('✓ Master Admin document confirmed in users/admin-master');
 
-  // Insert single clean log
-  const systemLog = {
-    id: `LOG-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    userUid: 'admin-master',
-    userName: 'Executive Management',
-    userRole: 'ADMIN',
-    action: 'PORTAL_CLEAN_INITIALIZED',
-    details: 'Master administration established. Clean operational state active with zero demo data.',
-    category: 'AUTH'
-  };
-  await setDoc(doc(db, 'activity_logs', systemLog.id), systemLog);
-  console.log('✓ Single clean activity log created');
-
-  console.log('COMPLETE: All demo data successfully eradicated from Firebase!');
+  console.log('COMPLETE: All demo data including salary_advances successfully eradicated from Firebase!');
 }
 
 cleanFirestore().catch(err => {

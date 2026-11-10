@@ -37,7 +37,7 @@ import {
   INITIAL_ACTIVITY_LOGS
 } from '../lib/mockData';
 
-const DB_VERSION_KEY = 'rumuli_portal_v4_clean';
+const DB_VERSION_KEY = 'rumuli_portal_v5_clean';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -228,8 +228,8 @@ export const PortalService = {
 
   async createWorker(newWorker: Omit<UserProfile, 'uid'>): Promise<UserProfile> {
     const admin = this.getCurrentUser();
-    if (!admin || admin.role !== 'ADMIN') {
-      throw new Error('Unauthorized: Only Administrators have authority to create staff accounts.');
+    if (!admin || (admin.role !== 'ADMIN' && admin.role !== 'ASSISTANT')) {
+      throw new Error('Unauthorized: Only Administrators and Operations Assistants have authority to create staff accounts.');
     }
 
     const uid = 'worker-' + Date.now();
@@ -540,7 +540,7 @@ export const PortalService = {
       employeeId: user.employeeId,
       department: user.department,
       requestedAmount: data.requestedAmount,
-      currentSalary: user.baseSalary,
+      currentSalary: user.baseSalary || 0,
       reason: data.reason,
       repaymentTerms: data.repaymentTerms,
       status: 'PENDING',

@@ -88,12 +88,16 @@ export const PortalHeader: React.FC = () => {
               <div className="hidden sm:block text-left">
                 <div className="text-xs font-bold leading-tight flex items-center space-x-1.5">
                   <span className="truncate max-w-[130px] text-white">{currentUser.name}</span>
-                  {isAdmin ? (
-                    <span className="bg-red-500/20 text-red-300 border border-red-500/40 text-[9px] px-1 py-0.2 rounded uppercase font-bold">
+                  {currentUser.role === 'ADMIN' ? (
+                    <span className="bg-red-500/20 text-red-300 border border-red-500/40 text-[9px] px-1.5 py-0.2 rounded uppercase font-bold">
                       Admin
                     </span>
+                  ) : currentUser.role === 'ASSISTANT' ? (
+                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] px-1.5 py-0.2 rounded uppercase font-bold">
+                      Operations Assistant
+                    </span>
                   ) : (
-                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] px-1 py-0.2 rounded uppercase font-bold">
+                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] px-1.5 py-0.2 rounded uppercase font-bold">
                       Staff
                     </span>
                   )}

@@ -21,7 +21,8 @@ export const PortalLoginPage: React.FC = () => {
 
   useEffect(() => {
     if (currentUser) {
-      navigate(currentUser.role === 'ADMIN' ? '/portal/admin' : '/portal/worker');
+      const destination = (currentUser.role === 'ADMIN' || currentUser.role === 'ASSISTANT') ? '/portal/admin' : '/portal/worker';
+      navigate(destination);
     }
   }, [currentUser, navigate]);
 
@@ -32,7 +33,8 @@ export const PortalLoginPage: React.FC = () => {
 
     try {
       const user = await login(email, password);
-      navigate(user.role === 'ADMIN' ? '/portal/admin' : '/portal/worker');
+      const destination = (user.role === 'ADMIN' || user.role === 'ASSISTANT') ? '/portal/admin' : '/portal/worker';
+      navigate(destination);
     } catch (err: any) {
       setError(err.message || 'Login failed. Please verify credentials.');
     } finally {
@@ -49,21 +51,32 @@ export const PortalLoginPage: React.FC = () => {
       <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Header */}
-      <header className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
+      <header className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors group text-xs font-semibold uppercase tracking-wider">
           <ArrowLeft className="w-4 h-4 mr-1 text-amber-brand group-hover:-translate-x-1 transition-transform" />
           <span>Back to Main Website</span>
+        </Link>
+        <Link to="/" className="flex items-center">
+          <img 
+            src="/logo-white.png" 
+            alt="RUMULI CORPORATE" 
+            className="h-8 sm:h-9 w-auto object-contain"
+          />
         </Link>
       </header>
 
       {/* Login Card */}
       <main className="relative z-10 max-w-md w-full mx-auto px-4 py-8">
-        <div className="bg-[#10243A]/90 backdrop-blur-xl border border-white/15 rounded-lg p-6 sm:p-8 shadow-2xl">
+        <div className="bg-[#10243A]/90 backdrop-blur-xl border border-white/15 rounded-xl p-6 sm:p-8 shadow-2xl">
           
           <div className="text-center mb-6">
-            <div className="w-14 h-14 mx-auto rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 mb-3">
-              <ShieldCheck className="w-8 h-8 text-[#10243A]" />
-            </div>
+            <Link to="/" className="inline-block mb-3">
+              <img 
+                src="/logo-white.png" 
+                alt="RUMULI CORPORATE" 
+                className="h-14 sm:h-16 w-auto mx-auto object-contain"
+              />
+            </Link>
             <h1 className="text-xl font-extrabold text-white tracking-tight">
               RUMULI CORPORATE
             </h1>

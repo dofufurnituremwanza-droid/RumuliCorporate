@@ -10,6 +10,8 @@ interface AuthContextType {
   switchUser: (user: UserProfile) => Promise<void>;
   refreshCurrentUser: () => Promise<void>;
   isAdmin: boolean;
+  isAssistant: boolean;
+  canManageWorkers: boolean;
   isWorker: boolean;
 }
 
@@ -64,6 +66,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAdmin = currentUser?.role === 'ADMIN';
+  const isAssistant = currentUser?.role === 'ASSISTANT';
+  const canManageWorkers = currentUser?.role === 'ADMIN' || currentUser?.role === 'ASSISTANT';
   const isWorker = currentUser?.role === 'WORKER';
 
   return (
@@ -76,6 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         switchUser,
         refreshCurrentUser,
         isAdmin,
+        isAssistant,
+        canManageWorkers,
         isWorker
       }}
     >

@@ -51,9 +51,9 @@ export const HomePage: React.FC = () => {
 
             {/* Main Headline */}
             <AnimatedSection delay={100}>
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.12] mb-6 drop-shadow-[0_3px_10px_rgba(0,0,0,0.95)]">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.12] mb-6">
                 Engineering Infrastructure. <br className="hidden sm:inline" />
-                <span className="text-[#E3A129] drop-shadow-[0_3px_10px_rgba(0,0,0,0.95)]">Powering Progress.</span>
+                <span className="text-[#E3A129]">Powering Progress.</span>
               </h1>
             </AnimatedSection>
 

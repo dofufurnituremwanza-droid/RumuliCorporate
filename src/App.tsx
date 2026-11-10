@@ -56,7 +56,7 @@ const PortalEntryRedirect: React.FC = () => {
     return <Navigate to="/portal/login" replace />;
   }
 
-  return currentUser.role === 'ADMIN' ? (
+  return (currentUser.role === 'ADMIN' || currentUser.role === 'ASSISTANT') ? (
     <Navigate to="/portal/admin" replace />
   ) : (
     <Navigate to="/portal/worker" replace />
@@ -82,9 +82,9 @@ const WorkerProtectedRoute: React.FC = () => {
   return <WorkerDashboard />;
 };
 
-// Admin Protected Route
+// Admin & Operations Assistant Protected Route
 const AdminProtectedRoute: React.FC = () => {
-  const { currentUser, loading, isAdmin } = useAuth();
+  const { currentUser, loading } = useAuth();
 
   if (loading) {
     return (
@@ -98,7 +98,8 @@ const AdminProtectedRoute: React.FC = () => {
     return <Navigate to="/portal/login" replace />;
   }
 
-  if (!isAdmin) {
+  const canManage = currentUser.role === 'ADMIN' || currentUser.role === 'ASSISTANT';
+  if (!canManage) {
     return <Navigate to="/portal/worker" replace />;
   }
 

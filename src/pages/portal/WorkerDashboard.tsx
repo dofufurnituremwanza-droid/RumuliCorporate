@@ -342,7 +342,7 @@ export const WorkerDashboard: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-400 mt-1.5 font-mono">
                   <span>ID: <strong className="text-white">{currentUser.employeeId}</strong></span>
                   <span>•</span>
-                  <span>Base: <strong className="text-amber-brand">{currentUser.baseSalary.toLocaleString()} TZS</strong></span>
+                  <span>Role: <strong className="text-amber-brand">{currentUser.role === 'ASSISTANT' ? 'Operations Assistant' : 'Field Technician'}</strong></span>
                 </div>
               </div>
             </div>
@@ -632,7 +632,7 @@ export const WorkerDashboard: React.FC = () => {
               <div>
                 <h2 className="text-sm sm:text-base font-bold text-[#10243A]">Early Salary Advance Portal</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Emergency financial welfare. Eligible for an advance of up to 50% of monthly base salary ({Math.floor(currentUser.baseSalary * 0.5).toLocaleString()} TZS).
+                  Emergency financial welfare. Eligible for an advance of up to {((currentUser.baseSalary || 2000000) * 0.5).toLocaleString()} TZS.
                 </p>
               </div>
               <button
@@ -1113,12 +1113,8 @@ export const WorkerDashboard: React.FC = () => {
             <form onSubmit={handleSubmitSalary} className="mt-4 space-y-3.5">
               <div className="p-3 bg-blue-50 border border-blue-100 rounded text-xs text-blue-900">
                 <div className="flex justify-between font-bold">
-                  <span>Monthly Base Salary:</span>
-                  <span>{currentUser.baseSalary.toLocaleString()} TZS</span>
-                </div>
-                <div className="flex justify-between text-gray-600 mt-1">
-                  <span>Max Allowed Advance (50%):</span>
-                  <span>{Math.floor(currentUser.baseSalary * 0.5).toLocaleString()} TZS</span>
+                  <span>Welfare Advance Limit:</span>
+                  <span>{((currentUser.baseSalary || 2000000) * 0.5).toLocaleString()} TZS</span>
                 </div>
               </div>
 
@@ -1127,7 +1123,7 @@ export const WorkerDashboard: React.FC = () => {
                 <input
                   type="number"
                   min="50000"
-                  max={Math.floor(currentUser.baseSalary * 0.5)}
+                  max={(currentUser.baseSalary || 2000000) * 0.5}
                   step="10000"
                   value={salaryAmount}
                   onChange={(e) => setSalaryAmount(Number(e.target.value))}

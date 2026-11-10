@@ -1,10 +1,10 @@
-export type UserRole = 'ADMIN' | 'WORKER';
+export type UserRole = 'ADMIN' | 'ASSISTANT' | 'WORKER';
 
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE';
 
 export interface UserProfile {
   uid: string;
-  employeeId: string; // e.g. RUM-ADM-001, RUM-ENG-104
+  employeeId: string; // e.g. RUM-ADM-001, RUM-AST-010, RUM-ENG-104
   name: string;
   email: string;
   password?: string; // Created and managed by Admin
@@ -12,7 +12,7 @@ export interface UserProfile {
   role: UserRole;
   department: string;
   designation: string;
-  baseSalary: number; // in TZS
+  baseSalary?: number; // Optional - Admin does not assign salary
   status: UserStatus;
   joinedDate: string;
   avatarUrl?: string; // User/Admin profile photo attachment

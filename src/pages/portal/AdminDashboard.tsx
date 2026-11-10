@@ -11,7 +11,8 @@ import {
   ActivityLog,
   ProjectReport,
   TaskPriority,
-  RequestStatus
+  RequestStatus,
+  UserRole
 } from '../../types/portal';
 import { 
   ShieldCheck, 
@@ -33,14 +34,17 @@ import {
   UserPlus,
   Camera,
   Key,
+  HardHat,
+  Compass,
   Image as ImageIcon
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser, isAdmin, isAssistant } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'approvals' | 'tasks' | 'reports' | 'workers' | 'audit'>('approvals');
   const [approvalCategory, setApprovalCategory] = useState<'all' | 'salary' | 'expenses' | 'materials'>('all');
+  const [workerRoleFilter, setWorkerRoleFilter] = useState<'ALL' | 'WORKER' | 'ASSISTANT' | 'ADMIN'>('ALL');
 
   const [workers, setWorkers] = useState<UserProfile[]>([]);
   const [tasks, setTasks] = useState<WorkerTask[]>([]);
@@ -84,17 +88,16 @@ export const AdminDashboard: React.FC = () => {
   const [newTaskDeadline, setNewTaskDeadline] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
 
-  // Form states for Provision Worker (with Admin-set password & profile photo)
+  // Form states for Provision Worker (Admin sets password & role; NO salary assignment)
   const [newWorkerName, setNewWorkerName] = useState('');
   const [newWorkerEmpId, setNewWorkerEmpId] = useState('');
   const [newWorkerEmail, setNewWorkerEmail] = useState('');
   const [newWorkerPassword, setNewWorkerPassword] = useState('rumuli2026');
   const [newWorkerAvatar, setNewWorkerAvatar] = useState('');
   const [newWorkerPhone, setNewWorkerPhone] = useState('');
-  const [newWorkerRole, setNewWorkerRole] = useState<'WORKER' | 'ADMIN'>('WORKER');
+  const [newWorkerRole, setNewWorkerRole] = useState<UserRole>('WORKER');
   const [newWorkerDept, setNewWorkerDept] = useState('Substations & Live-Line Power');
   const [newWorkerDesignation, setNewWorkerDesignation] = useState('');
-  const [newWorkerSalary, setNewWorkerSalary] = useState<number>(2500000);
 
   // Load all company data
   const loadAdminData = async () => {
@@ -130,14 +133,16 @@ export const AdminDashboard: React.FC = () => {
     loadAdminData();
   }, []);
 
-  if (!currentUser || !isAdmin) {
+  const canAccess = isAdmin || currentUser?.role === 'ASSISTANT';
+
+  if (!currentUser || !canAccess) {
     return (
       <div className="min-h-screen bg-[#F4F5F6] flex flex-col items-center justify-center p-4">
         <div className="bg-white p-6 sm:p-8 rounded-lg border border-red-200 max-w-md w-full text-center shadow-lg">
           <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-3" />
-          <h2 className="text-base sm:text-lg font-bold text-gray-900">Administrative Access Required</h2>
+          <h2 className="text-base sm:text-lg font-bold text-gray-900">Administrative or Assistant Access Required</h2>
           <p className="text-xs text-gray-600 mt-2">
-            This dashboard is restricted strictly to Corporate Executive Management and Administrators.
+            This dashboard is restricted strictly to Corporate Executive Management and Operations Assistants who oversee field workers.
           </p>
         </div>
       </div>
@@ -150,6 +155,9 @@ export const AdminDashboard: React.FC = () => {
   const pendingMaterialsCount = materialRequests.filter(m => m.status === 'PENDING').length;
   const totalPending = pendingSalaryCount + pendingExpensesCount + pendingMaterialsCount;
   const submittedReportsCount = projectReports.filter(r => r.status === 'SUBMITTED').length;
+
+  const assistantCount = workers.filter(w => w.role === 'ASSISTANT').length;
+  const workerCount = workers.filter(w => w.role === 'WORKER').length;
 
   // Execute Review (Approve / Reject) for Salary, Expenses, Materials
   const handleExecuteReview = async (e: React.FormEvent) => {
@@ -177,7 +185,7 @@ export const AdminDashboard: React.FC = () => {
     await PortalService.reviewProjectReport(
       reportReviewModal.reportId,
       'REVIEWED',
-      reportReviewNotes || 'Verified and approved by Executive Engineering Management.'
+      reportReviewNotes || 'Verified and approved by Operations Oversight.'
     );
 
     setReportReviewModal(null);
@@ -224,12 +232,17 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Provision Worker Handler (Admin sets password & photo)
+  // Provision Worker / Assistant Handler (NO salary input)
   const handleProvisionWorker = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWorkerName || !newWorkerEmail || !newWorkerPassword) return;
 
-    const empId = newWorkerEmpId || `RUM-EMP-${Math.floor(100 + Math.random() * 900)}`;
+    const prefix = newWorkerRole === 'ASSISTANT' ? 'RUM-AST' : (newWorkerRole === 'ADMIN' ? 'RUM-ADM' : 'RUM-ENG');
+    const empId = newWorkerEmpId || `${prefix}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const defaultTitle = newWorkerRole === 'ASSISTANT' 
+      ? 'Operations Assistant & Field Supervisor' 
+      : (newWorkerRole === 'ADMIN' ? 'Executive Director' : 'Engineering Technician');
 
     await PortalService.createWorker({
       employeeId: empId,
@@ -240,8 +253,7 @@ export const AdminDashboard: React.FC = () => {
       phone: newWorkerPhone || '+255 700 000 000',
       role: newWorkerRole,
       department: newWorkerDept,
-      designation: newWorkerDesignation || 'Engineering Technician',
-      baseSalary: Number(newWorkerSalary),
+      designation: newWorkerDesignation || defaultTitle,
       status: 'ACTIVE',
       joinedDate: new Date().toISOString().split('T')[0]
     });
@@ -264,27 +276,39 @@ export const AdminDashboard: React.FC = () => {
     await loadAdminData();
   };
 
+  // Filtered workers list
+  const filteredWorkers = workers.filter(w => {
+    if (workerRoleFilter === 'ALL') return true;
+    return w.role === workerRoleFilter;
+  });
+
   return (
     <div className="min-h-screen bg-[#F4F5F6] flex flex-col">
       <PortalHeader />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
         
-        {/* Admin Header Banner */}
+        {/* Operations & Administration Header Banner */}
         <div className="bg-[#10243A] text-white rounded-lg p-4 sm:p-6 md:p-8 shadow-md mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             <div>
               <div className="flex items-center space-x-2">
-                <ShieldCheck className="w-5 h-5 text-amber-brand flex-shrink-0" />
+                <Compass className="w-5 h-5 text-amber-brand flex-shrink-0" />
                 <span className="text-[10px] sm:text-xs uppercase font-extrabold tracking-widest text-amber-brand">
-                  Executive Administration & Operations Command
+                  {currentUser.role === 'ASSISTANT' 
+                    ? 'Field Operations Assistant — Workforce Oversight'
+                    : 'Corporate Command & Operations Oversight'}
                 </span>
               </div>
               <h1 className="text-lg sm:text-2xl font-bold tracking-tight mt-1">
-                Corporate Command Dashboard
+                {currentUser.role === 'ASSISTANT'
+                  ? 'Operations Assistant Command Center'
+                  : 'Corporate Command & Workforce Dashboard'}
               </h1>
               <p className="text-xs sm:text-sm text-gray-300 mt-1 max-w-2xl leading-relaxed">
-                Authorized management center to provision staff accounts and assign passwords, dispatch high-voltage and mining field tasks, inspect submitted project field reports, and authorize salary advances & field expenditures.
+                {currentUser.role === 'ASSISTANT'
+                  ? 'Operations Assistant active session: Monitor on-site personnel, assign high-voltage and mining work tasks, verify daily HSE Zero-Harm compliance, and inspect incoming field project reports.'
+                  : 'Authorized management center to provision staff accounts and assign Operations Assistants who operate and look over workers, dispatch field tasks, inspect engineering reports, and oversee worksites.'}
               </p>
             </div>
 
@@ -304,19 +328,26 @@ export const AdminDashboard: React.FC = () => {
                 className="w-full sm:w-auto px-4 py-2.5 bg-[#1C3E61] text-white hover:bg-[#234d77] border border-[#2B5480] text-xs font-bold rounded flex items-center justify-center space-x-1.5 transition-colors"
               >
                 <UserPlus className="w-4 h-4 text-amber-brand" />
-                <span>+ Provision Worker Account</span>
+                <span>+ Provision Personnel</span>
               </button>
             </div>
           </div>
 
-          {/* Quick Metrics Cards (Responsive grid) */}
+          {/* Quick Metrics Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 mt-5 pt-5 border-t border-[#1C3E61]">
             <div className="bg-[#16314D]/80 p-2.5 sm:p-3 rounded border border-[#203D5C]">
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400 block truncate">Pending Approvals</span>
-              <div className="text-base sm:text-lg font-black text-amber-brand mt-0.5 flex items-center space-x-1">
-                <span>{totalPending}</span>
-                {totalPending > 0 && <span className="text-[9px] font-semibold bg-red-500/20 text-red-300 px-1 py-0.2 rounded">Action</span>}
-              </div>
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400 block truncate">Field Workers</span>
+              <div className="text-base sm:text-lg font-black text-white mt-0.5">{workerCount} Technicians</div>
+            </div>
+
+            <div className="bg-[#16314D]/80 p-2.5 sm:p-3 rounded border border-[#203D5C]">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-brand block truncate">Operations Assistants</span>
+              <div className="text-base sm:text-lg font-black text-amber-brand mt-0.5">{assistantCount} Overseeing</div>
+            </div>
+
+            <div className="bg-[#16314D]/80 p-2.5 sm:p-3 rounded border border-[#203D5C]">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400 block truncate">Active Tasks</span>
+              <div className="text-base sm:text-lg font-black text-blue-400 mt-0.5">{tasks.length} Assigned</div>
             </div>
 
             <div className="bg-[#16314D]/80 p-2.5 sm:p-3 rounded border border-[#203D5C]">
@@ -327,24 +358,14 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[#16314D]/80 p-2.5 sm:p-3 rounded border border-[#203D5C]">
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400 block truncate">Staff Personnel</span>
-              <div className="text-base sm:text-lg font-black text-white mt-0.5 truncate">{workers.length} Members</div>
-            </div>
-
-            <div className="bg-[#16314D]/80 p-2.5 sm:p-3 rounded border border-[#203D5C]">
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400 block truncate">Active Tasks</span>
-              <div className="text-base sm:text-lg font-black text-blue-400 mt-0.5 truncate">{tasks.length} Assigned</div>
-            </div>
-
             <div className="col-span-2 sm:col-span-1 bg-[#16314D]/80 p-2.5 sm:p-3 rounded border border-[#203D5C]">
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400 block truncate">Audit Events</span>
-              <div className="text-base sm:text-lg font-black text-emerald-400 mt-0.5">{activityLogs.length} Logged</div>
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400 block truncate">Pending Reviews</span>
+              <div className="text-base sm:text-lg font-black text-emerald-400 mt-0.5">{totalPending} Pending</div>
             </div>
           </div>
         </div>
 
-        {/* Navigation Tabs (Horizontal scroll with touch support on phone) */}
+        {/* Navigation Tabs (Horizontal scroll on phone) */}
         <div className="flex border-b border-gray-200 bg-white rounded-t-lg px-2 sm:px-4 shadow-2xs mb-6 overflow-x-auto">
           <button
             type="button"
@@ -356,7 +377,7 @@ export const AdminDashboard: React.FC = () => {
             }`}
           >
             <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-brand" />
-            <span>Approvals</span>
+            <span>Operations Approvals</span>
             {totalPending > 0 && (
               <span className="px-1.5 py-0.2 text-[9px] font-extrabold bg-red-600 text-white rounded-full">
                 {totalPending}
@@ -374,7 +395,7 @@ export const AdminDashboard: React.FC = () => {
             }`}
           >
             <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-brand" />
-            <span>Project Reports</span>
+            <span>Project Field Reports</span>
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-amber-100 text-amber-900 font-bold">{projectReports.length}</span>
           </button>
 
@@ -388,7 +409,7 @@ export const AdminDashboard: React.FC = () => {
             }`}
           >
             <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
-            <span>Task Board</span>
+            <span>Task Assignments</span>
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-gray-100 font-bold">{tasks.length}</span>
           </button>
 
@@ -402,7 +423,7 @@ export const AdminDashboard: React.FC = () => {
             }`}
           >
             <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
-            <span>Staff Roster</span>
+            <span>Personnel & Oversight</span>
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-gray-100 font-bold">{workers.length}</span>
           </button>
 
@@ -421,7 +442,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* ============================================================ */}
-        {/* TAB 1: APPROVALS NERVE CENTER */}
+        {/* TAB 1: OPERATIONS APPROVALS */}
         {/* ============================================================ */}
         {activeTab === 'approvals' && (
           <div className="space-y-6">
@@ -499,12 +520,9 @@ export const AdminDashboard: React.FC = () => {
                             <span className="text-[11px] text-gray-400">• {req.department}</span>
                           </div>
 
-                          <div className="flex flex-wrap items-baseline gap-2 text-xs">
+                          <div className="text-xs">
                             <span className="font-black text-emerald-700 text-sm sm:text-base">
                               {req.requestedAmount.toLocaleString()} TZS
-                            </span>
-                            <span className="text-gray-400 font-mono text-[11px]">
-                              (Base: {req.currentSalary.toLocaleString()} TZS)
                             </span>
                           </div>
 
@@ -521,7 +539,7 @@ export const AdminDashboard: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Actions (Stacked or Full Width on Phone) */}
+                        {/* Actions */}
                         <div className="flex items-center gap-2 w-full md:w-auto flex-shrink-0 pt-2 md:pt-0">
                           {req.status === 'PENDING' ? (
                             <>
@@ -584,7 +602,7 @@ export const AdminDashboard: React.FC = () => {
                     <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-amber-700 flex-shrink-0" />
                     <div>
                       <h3 className="text-xs sm:text-sm font-bold text-[#10243A]">Field Per Diem, Meals, Lodging & Expenses</h3>
-                      <p className="text-[10px] sm:text-[11px] text-gray-500 hidden sm:block">Expenditures filed by engineers dispatched to far projects (food, hotel, fuel).</p>
+                      <p className="text-[10px] sm:text-[11px] text-gray-500 hidden sm:block">Expenditures filed by engineers dispatched to remote projects.</p>
                     </div>
                   </div>
                   {pendingExpensesCount > 0 && (
@@ -834,7 +852,7 @@ export const AdminDashboard: React.FC = () => {
                 <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <h3 className="text-sm font-bold text-gray-800">No Field Reports Submitted Yet</h3>
                 <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
-                  When field engineers and technicians submit work progress and photo attachments from their dashboard, they will appear here for executive engineering review.
+                  When field engineers and technicians submit work progress and photo attachments from their dashboard, they will appear here for engineering review.
                 </p>
               </div>
             ) : (
@@ -981,7 +999,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-lg border border-gray-200 shadow-2xs">
               <div>
                 <h2 className="text-sm sm:text-base font-bold text-[#10243A]">Field Task Assignment Board</h2>
-                <p className="text-xs text-gray-500">Assign electrical, mining, civil, and crane tasks directly to certified personnel.</p>
+                <p className="text-xs text-gray-500">Assign electrical, mining, civil, and crane tasks directly to certified personnel or Operations Assistants.</p>
               </div>
               <button
                 type="button"
@@ -1026,7 +1044,7 @@ export const AdminDashboard: React.FC = () => {
 
                       <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5 text-xs text-gray-600">
                         <div>
-                          <strong>Personnel:</strong> <span className="text-[#10243A] font-bold">{task.assignedToName}</span>
+                          <strong>Assigned To:</strong> <span className="text-[#10243A] font-bold">{task.assignedToName}</span>
                         </div>
                         <div className="truncate">
                           <strong>Project:</strong> {task.project}
@@ -1061,15 +1079,15 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {/* ============================================================ */}
-        {/* TAB 4: STAFF ROSTER & PROVISIONING */}
+        {/* TAB 4: PERSONNEL & OPERATIONS OVERSIGHT */}
         {/* ============================================================ */}
         {activeTab === 'workers' && (
           <div className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-lg border border-gray-200 shadow-2xs">
               <div>
-                <h2 className="text-sm sm:text-base font-bold text-[#10243A]">Corporate Personnel & Provisioning</h2>
+                <h2 className="text-sm sm:text-base font-bold text-[#10243A]">Corporate Personnel & Field Oversight</h2>
                 <p className="text-xs text-gray-500">
-                  Only Administrators have authority to create worker accounts, configure login passwords, attach photos, and manage operational roles.
+                  Manage worker accounts and Operations Assistants who operate and look over workers in the field.
                 </p>
               </div>
               <button
@@ -1078,13 +1096,54 @@ export const AdminDashboard: React.FC = () => {
                 className="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded flex items-center justify-center space-x-1.5 transition-colors shadow-sm"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>+ Provision Worker</span>
+                <span>+ Provision Personnel</span>
+              </button>
+            </div>
+
+            {/* Filter by Role */}
+            <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+              <span className="text-[11px] sm:text-xs font-bold uppercase text-gray-500 whitespace-nowrap">Filter Role:</span>
+              <button
+                type="button"
+                onClick={() => setWorkerRoleFilter('ALL')}
+                className={`px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${
+                  workerRoleFilter === 'ALL' ? 'bg-[#10243A] text-white' : 'bg-white border text-gray-600'
+                }`}
+              >
+                All Personnel ({workers.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setWorkerRoleFilter('WORKER')}
+                className={`px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${
+                  workerRoleFilter === 'WORKER' ? 'bg-[#10243A] text-white' : 'bg-white border text-gray-600'
+                }`}
+              >
+                Field Workers ({workerCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setWorkerRoleFilter('ASSISTANT')}
+                className={`px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${
+                  workerRoleFilter === 'ASSISTANT' ? 'bg-amber-600 text-white' : 'bg-white border text-amber-700'
+                }`}
+              >
+                Operations Assistants ({assistantCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setWorkerRoleFilter('ADMIN')}
+                className={`px-3 py-1 rounded text-xs font-semibold whitespace-nowrap ${
+                  workerRoleFilter === 'ADMIN' ? 'bg-[#10243A] text-white' : 'bg-white border text-gray-600'
+                }`}
+              >
+                Administrators ({workers.filter(w => w.role === 'ADMIN').length})
               </button>
             </div>
 
             {/* Mobile View: Responsive Staff Cards (< md screens) */}
             <div className="block md:hidden space-y-3">
-              {workers.map((worker) => (
+              {filteredWorkers.map((worker) => (
                 <div key={worker.uid} className="bg-white border border-gray-200 rounded-lg p-4 shadow-2xs space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center space-x-2.5 min-w-0">
@@ -1103,6 +1162,10 @@ export const AdminDashboard: React.FC = () => {
                     {worker.role === 'ADMIN' ? (
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-300 flex-shrink-0">
                         ADMIN
+                      </span>
+                    ) : worker.role === 'ASSISTANT' ? (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-400 flex-shrink-0">
+                        ASSISTANT
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300 flex-shrink-0">
@@ -1123,13 +1186,10 @@ export const AdminDashboard: React.FC = () => {
                         <span>{worker.password || 'rumuli2026'}</span>
                       </div>
                     </div>
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-gray-400 block">Department</span>
-                      <span className="text-gray-700 truncate block">{worker.department}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-gray-400 block">Base Salary</span>
-                      <span className="font-bold text-emerald-800">{worker.baseSalary.toLocaleString()} TZS</span>
+                    <div className="col-span-2">
+                      <span className="text-[10px] uppercase font-bold text-gray-400 block">Department & Designation</span>
+                      <span className="text-gray-700 font-semibold block">{worker.designation}</span>
+                      <span className="text-[11px] text-gray-500 block truncate">{worker.department}</span>
                     </div>
                   </div>
 
@@ -1163,13 +1223,12 @@ export const AdminDashboard: React.FC = () => {
                       <th className="p-3 font-semibold">Login Password</th>
                       <th className="p-3 font-semibold">Role</th>
                       <th className="p-3 font-semibold">Department & Designation</th>
-                      <th className="p-3 font-semibold">Base Salary (TZS)</th>
                       <th className="p-3 font-semibold">Status</th>
                       <th className="p-3 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {workers.map((worker) => (
+                    {filteredWorkers.map((worker) => (
                       <tr key={worker.uid} className="hover:bg-gray-50">
                         <td className="p-3">
                           <div className="flex items-center space-x-2.5">
@@ -1198,6 +1257,10 @@ export const AdminDashboard: React.FC = () => {
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-300">
                               ADMIN
                             </span>
+                          ) : worker.role === 'ASSISTANT' ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-400">
+                              OPERATIONS ASSISTANT
+                            </span>
                           ) : (
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
                               WORKER
@@ -1207,9 +1270,6 @@ export const AdminDashboard: React.FC = () => {
                         <td className="p-3 text-gray-700">
                           <div className="font-semibold">{worker.designation}</div>
                           <div className="text-[11px] text-gray-500">{worker.department}</div>
-                        </td>
-                        <td className="p-3 font-bold text-emerald-800">
-                          {worker.baseSalary.toLocaleString()} TZS
                         </td>
                         <td className="p-3">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -1299,10 +1359,10 @@ export const AdminDashboard: React.FC = () => {
 
             <form onSubmit={handleAssignTask} className="mt-4 space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Select Field Worker</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Select Field Personnel</label>
                 {workers.length === 0 ? (
                   <div className="p-3 bg-amber-50 border border-amber-200 rounded text-xs text-amber-900">
-                    No workers provisioned yet. Please provision a worker account first!
+                    No personnel provisioned yet. Please provision a worker or assistant first!
                   </div>
                 ) : (
                   <select
@@ -1313,7 +1373,7 @@ export const AdminDashboard: React.FC = () => {
                   >
                     {workers.map((w) => (
                       <option key={w.uid} value={w.uid}>
-                        {w.name} ({w.employeeId}) — {w.designation}
+                        {w.name} ({w.employeeId}) — {w.role}: {w.designation}
                       </option>
                     ))}
                   </select>
@@ -1417,7 +1477,7 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 2: PROVISION WORKER ACCOUNT (Admin sets password & photo) */}
+      {/* MODAL 2: PROVISION PERSONNEL (NO salary assignment) */}
       {/* ============================================================ */}
       {showCreateWorkerModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
@@ -1425,7 +1485,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center space-x-2">
                 <UserPlus className="w-5 h-5 text-emerald-600" />
-                <h3 className="text-sm font-bold text-[#10243A]">Provision New Staff Account</h3>
+                <h3 className="text-sm font-bold text-[#10243A]">Provision New Staff / Operations Assistant</h3>
               </div>
               <button onClick={() => setShowCreateWorkerModal(false)} className="text-gray-400 hover:text-gray-600 p-1">
                 <X className="w-5 h-5" />
@@ -1445,7 +1505,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-xs font-bold text-gray-800 mb-1">
-                    Staff Profile Photo
+                    Staff Identification Photo
                   </label>
                   <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded text-xs font-semibold text-gray-700 hover:bg-gray-100 shadow-2xs">
                     <ImageIcon className="w-3.5 h-3.5 text-amber-brand" />
@@ -1458,6 +1518,29 @@ export const AdminDashboard: React.FC = () => {
                     />
                   </label>
                 </div>
+              </div>
+
+              {/* Role Selection: Operations Assistant / Worker / Admin */}
+              <div>
+                <label className="block text-xs font-bold text-[#10243A] mb-1">
+                  Operational Role Assignment
+                </label>
+                <select
+                  value={newWorkerRole}
+                  onChange={(e) => setNewWorkerRole(e.target.value as UserRole)}
+                  className="w-full border border-gray-300 rounded p-2.5 text-xs font-bold bg-white"
+                >
+                  <option value="WORKER">FIELD WORKER (Engineering Technician / Lineman)</option>
+                  <option value="ASSISTANT">OPERATIONS ASSISTANT (Operates & Looks Over Workers)</option>
+                  <option value="ADMIN">ADMINISTRATOR (Executive Oversight)</option>
+                </select>
+                <p className="text-[10px] text-gray-500 mt-1">
+                  {newWorkerRole === 'ASSISTANT' 
+                    ? 'Operations Assistants operate and supervise workers in the field, tracking live tasks, daily safety sign-offs, and progress reports.' 
+                    : newWorkerRole === 'WORKER' 
+                    ? 'Field workers sign into the portal, view assigned tasks, submit execution reports, and log HSE safety sign-offs.'
+                    : 'Administrators have complete executive oversight over the platform.'}
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1478,7 +1561,7 @@ export const AdminDashboard: React.FC = () => {
                     type="text"
                     value={newWorkerEmpId}
                     onChange={(e) => setNewWorkerEmpId(e.target.value)}
-                    placeholder="e.g. RUM-ENG-402"
+                    placeholder={newWorkerRole === 'ASSISTANT' ? 'e.g. RUM-AST-012' : 'e.g. RUM-ENG-402'}
                     className="w-full border border-gray-300 rounded p-2.5 text-xs font-mono"
                   />
                 </div>
@@ -1513,30 +1596,6 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">System Role</label>
-                  <select
-                    value={newWorkerRole}
-                    onChange={(e) => setNewWorkerRole(e.target.value as any)}
-                    className="w-full border border-gray-300 rounded p-2.5 text-xs font-bold bg-white"
-                  >
-                    <option value="WORKER">WORKER (FIELD STAFF)</option>
-                    <option value="ADMIN">ADMIN (EXECUTIVE MANAGEMENT)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
-                  <input
-                    type="text"
-                    value={newWorkerPhone}
-                    onChange={(e) => setNewWorkerPhone(e.target.value)}
-                    placeholder="+255 7XX XXX XXX"
-                    className="w-full border border-gray-300 rounded p-2.5 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">Department</label>
                   <select
                     value={newWorkerDept}
@@ -1551,14 +1610,13 @@ export const AdminDashboard: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Monthly Base Salary (TZS)</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
                   <input
-                    type="number"
-                    step="50000"
-                    value={newWorkerSalary}
-                    onChange={(e) => setNewWorkerSalary(Number(e.target.value))}
-                    required
-                    className="w-full border border-gray-300 rounded p-2.5 text-xs font-bold"
+                    type="text"
+                    value={newWorkerPhone}
+                    onChange={(e) => setNewWorkerPhone(e.target.value)}
+                    placeholder="+255 7XX XXX XXX"
+                    className="w-full border border-gray-300 rounded p-2.5 text-xs"
                   />
                 </div>
               </div>
@@ -1569,14 +1627,14 @@ export const AdminDashboard: React.FC = () => {
                   type="text"
                   value={newWorkerDesignation}
                   onChange={(e) => setNewWorkerDesignation(e.target.value)}
-                  placeholder="e.g. Senior Live-Line Substation Engineer"
+                  placeholder={newWorkerRole === 'ASSISTANT' ? 'e.g. Operations Assistant & Field Workforce Supervisor' : 'e.g. Senior Live-Line Substation Engineer'}
                   required
                   className="w-full border border-gray-300 rounded p-2.5 text-xs"
                 />
               </div>
 
               <div className="p-3 bg-amber-50 rounded text-xs text-amber-900 border border-amber-200 leading-relaxed">
-                The worker can immediately sign into the staff portal with their email and the password you have configured above.
+                The staff member can immediately sign into the portal using their email and the password you have configured above.
               </div>
 
               <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
@@ -1686,7 +1744,7 @@ export const AdminDashboard: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Engineering Management Feedback / Review Notes
+                  Management Feedback / Review Notes
                 </label>
                 <textarea
                   rows={3}
